@@ -42,7 +42,8 @@ export default function GaussianViewer({
       } catch (err) {
         console.error("Error initializing viewer:", err);
         if (!disposed) {
-          setError("Failed to load 3D scene. The model may still be processing.");
+          const errorMsg = err instanceof Error ? err.message : String(err);
+          setError(`Failed to load 3D scene: ${errorMsg}`);
           setIsLoading(false);
         }
       }
@@ -112,7 +113,26 @@ export default function GaussianViewer({
 
         viewerRef.current = { viewer, camera, renderer, controls };
 
-        await viewer.addSplatScene(modelUrl, {
+        // Handle blob URLs - convert to data URL if needed
+        let urlToLoad = modelUrl;
+        if (modelUrl.startsWith('blob:')) {
+          // For blob URLs, we need to fetch and convert to data URL
+          try {
+            const response = await fetch(modelUrl);
+            const blob = await response.blob();
+            urlToLoad = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+          } catch (err) {
+            console.error('Error converting blob to data URL:', err);
+            // Fall back to original URL
+          }
+        }
+
+        await viewer.addSplatScene(urlToLoad, {
           splatAlphaRemovalThreshold: 5,
           showLoadingUI: false,
           progressiveLoad: true,
