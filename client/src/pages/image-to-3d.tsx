@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   ArrowRight,
-  Github,
   AlertCircle,
   Upload,
   Wand2,
@@ -419,7 +418,7 @@ export default function ImageTo3DPage() {
 
       {/* Footer */}
       <footer className="py-8 px-6">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-6">
           <div className="flex items-center gap-2">
             <Box className="w-4 h-4 text-gray-500 dark:text-gray-400" strokeWidth={1.5} />
             <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -433,33 +432,6 @@ export default function ImageTo3DPage() {
                 ML-SHARP
               </a>
             </span>
-          </div>
-          <div className="flex items-center gap-8 text-sm">
-            <a
-              href="https://arxiv.org/abs/2512.10685"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-            >
-              Paper
-            </a>
-            <a
-              href="https://apple.github.io/ml-sharp/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-            >
-              Project
-            </a>
-            <a
-              href="https://github.com/Sharp-ML/SHARP-ML"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 flex items-center gap-2"
-            >
-              <Github className="w-4 h-4" strokeWidth={1.5} />
-              <span>GitHub</span>
-            </a>
           </div>
         </div>
       </footer>
