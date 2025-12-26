@@ -1,0 +1,39 @@
+========================================
+HOW TO PUSH TO GITHUB MANUALLY
+========================================
+
+Since Git is not in your PATH, do this:
+
+1. Open CMD (Command Prompt) - NOT PowerShell
+2. Navigate to the folder:
+   cd C:\Users\rotciv\Desktop\Velowen
+
+3. Initialize git (if needed):
+   git init
+
+4. Add all files:
+   git add .
+
+5. Commit:
+   git commit -m "Add Image to 3D feature"
+
+6. Add remote (if needed):
+   git remote add origin https://github.com/VittorioC13/Velowen.git
+   
+   OR if remote exists, update it:
+   git remote set-url origin https://github.com/VittorioC13/Velowen.git
+
+7. Set branch to main:
+   git branch -M main
+
+8. Push:
+   git push -u origin main
+
+If it asks for authentication, you'll need to:
+- Use a Personal Access Token (not password)
+- Or use GitHub Desktop app
+
+After pushing, Vercel will automatically deploy to velowen.vercel.app
+
+========================================
+
