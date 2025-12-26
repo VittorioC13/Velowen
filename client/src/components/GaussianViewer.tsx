@@ -22,6 +22,9 @@ export default function GaussianViewer({
   useEffect(() => {
     if (!containerRef.current || !modelUrl) return;
 
+    console.log('[GaussianViewer] Initializing with URL:', modelUrl);
+    console.log('[GaussianViewer] Model type:', modelType);
+
     let disposed = false;
     let animationFrameId: number;
 
@@ -36,13 +39,13 @@ export default function GaussianViewer({
         }
 
         if (modelType === "ply") {
-          // Use Gaussian Splats viewer for PLY files
           await initGaussianSplatViewer();
         }
       } catch (err) {
-        console.error("Error initializing viewer:", err);
+        console.error("[GaussianViewer] Error initializing viewer:", err);
         if (!disposed) {
           const errorMsg = err instanceof Error ? err.message : String(err);
+          console.error("[GaussianViewer] Full error:", errorMsg);
           setError(`Failed to load 3D scene: ${errorMsg}`);
           setIsLoading(false);
         }
@@ -51,14 +54,17 @@ export default function GaussianViewer({
 
     const initGaussianSplatViewer = async () => {
       try {
-        // Dynamically import the Gaussian Splats library
+        console.log("[GaussianViewer] Importing Gaussian Splats library...");
         const GaussianSplats3D = await import("@mkkellogg/gaussian-splats-3d");
+        console.log("[GaussianViewer] Library imported successfully");
 
         if (disposed || !containerRef.current) return;
 
         const container = containerRef.current;
         const width = container.clientWidth;
         const height = container.clientHeight;
+
+        console.log("[GaussianViewer] Container size:", width, "x", height);
 
         // Create renderer
         const renderer = new THREE.WebGLRenderer({
@@ -98,7 +104,7 @@ export default function GaussianViewer({
 
         renderer.domElement.addEventListener("wheel", handleWheel, { passive: false });
 
-        // Create viewer
+        // Create viewer - EXACT SHARP-ML CONFIGURATION
         const viewer = new GaussianSplats3D.Viewer({
           renderer: renderer,
           camera: camera,
@@ -113,22 +119,28 @@ export default function GaussianViewer({
 
         viewerRef.current = { viewer, camera, renderer, controls };
 
-        // Load the PLY file - blob URLs should work directly
-        console.log('Loading PLY from URL:', modelUrl);
+        console.log("[GaussianViewer] Loading PLY from URL:", modelUrl);
+        console.log("[GaussianViewer] URL type:", modelUrl.startsWith('data:') ? 'data URL' : modelUrl.startsWith('blob:') ? 'blob URL' : 'HTTP URL');
+        
+        // Load the PLY file - EXACT SHARP-ML CALL
         await viewer.addSplatScene(modelUrl, {
           splatAlphaRemovalThreshold: 5,
           showLoadingUI: false,
           progressiveLoad: true,
           onProgress: (progress: number) => {
-            setLoadProgress(Math.min(100, Math.round(progress)));
+            const clampedProgress = Math.min(100, Math.round(progress));
+            console.log("[GaussianViewer] Load progress:", clampedProgress + "%");
+            setLoadProgress(clampedProgress);
           },
         });
+
+        console.log("[GaussianViewer] PLY loaded successfully!");
 
         if (disposed) return;
 
         setIsLoading(false);
 
-        // Animation loop
+        // Animation loop - EXACT SHARP-ML LOOP
         const animate = () => {
           if (disposed) return;
           animationFrameId = requestAnimationFrame(animate);
@@ -150,6 +162,7 @@ export default function GaussianViewer({
 
         window.addEventListener("resize", handleResize);
       } catch (err) {
+        console.error("[GaussianViewer] Error in initGaussianSplatViewer:", err);
         throw err;
       }
     };
@@ -182,29 +195,30 @@ export default function GaussianViewer({
   }, [modelUrl, modelType]);
 
   return (
-    <div className="w-full aspect-video rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-900 relative">
-      <div ref={containerRef} className="w-full h-full" />
+    <div className="relative w-full h-[60vh] bg-gray-900 rounded-lg overflow-hidden">
+      <div ref={containerRef} className="absolute inset-0" />
 
       {isLoading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90">
-          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-white text-sm">Loading 3D Scene</p>
-          <p className="text-white/60 text-xs mt-2">{loadProgress}%</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 text-white z-10">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-lg">Loading 3D Scene</p>
+          <p className="text-sm mt-1">{loadProgress}%</p>
         </div>
       )}
 
       {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90">
-          <p className="text-red-400 text-sm">{error}</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 text-red-400 p-4 text-center z-10">
+          <p className="text-lg font-semibold mb-2">Failed to load 3D scene</p>
+          <p className="text-sm">{error}</p>
+          <p className="text-xs mt-2 text-gray-400">Check browser console for details</p>
         </div>
       )}
 
       {!isLoading && !error && (
-        <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-xs">
+        <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-xs z-10">
           <p>Drag to rotate • Scroll to fly through</p>
         </div>
       )}
     </div>
   );
 }
-
