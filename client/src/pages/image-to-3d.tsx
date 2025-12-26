@@ -111,16 +111,10 @@ export default function ImageTo3DPage() {
         throw new Error(result.error || "No PLY data received");
       }
 
-      // Convert base64 to blob and create URL
+      // Convert base64 to data URL (Gaussian Splats library needs data URL, not blob URL)
       const base64Data = result.ply_base64;
-      const binaryString = atob(base64Data);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const blob = new Blob([bytes], { type: 'application/octet-stream' });
-      const url = URL.createObjectURL(blob);
-      setModelUrl(url);
+      const dataUrl = `data:application/octet-stream;base64,${base64Data}`;
+      setModelUrl(dataUrl);
 
       setProgress(100);
       setStatus("complete");
