@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { get } from '@vercel/blob';
 
 export default async function handler(
   req: VercelRequest,
@@ -9,23 +10,44 @@ export default async function handler(
   }
 
   try {
-    const { data } = req.query;
+    const { id } = req.query;
 
-    if (!data || typeof data !== 'string') {
-      return res.status(400).json({ message: 'PLY data is required' });
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ message: 'PLY ID is required' });
     }
 
-    // Decode base64 PLY data from query parameter
-    const plyBuffer = Buffer.from(data, 'base64');
+    // Try to get from Vercel Blob storage
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      try {
+        const fileName = `outputs/${id}.ply`;
+        const blob = await get(fileName);
+        
+        if (!blob) {
+          return res.status(404).json({ message: 'PLY file not found' });
+        }
 
-    // Set headers for PLY file
-    res.setHeader('Content-Type', 'application/x-ply');
-    res.setHeader('Content-Disposition', 'inline; filename="scene.ply"');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+        // Convert blob to buffer
+        const arrayBuffer = await blob.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
-    // Send the PLY file
-    res.send(plyBuffer);
+        // Set headers for PLY file
+        res.setHeader('Content-Type', 'application/x-ply');
+        res.setHeader('Content-Disposition', `inline; filename="${id}.ply"`);
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+
+        // Send the PLY file
+        res.send(buffer);
+        return;
+      } catch (blobError) {
+        console.error('Error fetching from Blob:', blobError);
+        return res.status(404).json({ message: 'PLY file not found in storage' });
+      }
+    } else {
+      return res.status(500).json({ 
+        message: 'Vercel Blob storage not configured. Please set BLOB_READ_WRITE_TOKEN environment variable.' 
+      });
+    }
   } catch (error) {
     console.error('Error serving PLY:', error);
     res.status(500).json({ message: 'Failed to serve PLY file' });

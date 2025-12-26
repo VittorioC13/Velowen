@@ -51,38 +51,22 @@ export default async function handler(
     const id = `ply-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const fileName = `outputs/${id}.ply`;
 
-    // Upload to Vercel Blob storage (like SHARP-ML does)
+    // Upload to Vercel Blob storage (REQUIRED - no fallback to prevent memory issues)
     let plyUrl: string;
     
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      // Production: Use Vercel Blob
-      try {
-        const blob = await put(fileName, plyBuffer, {
-          access: 'public',
-          contentType: 'application/x-ply',
-        });
-        plyUrl = blob.url;
-      } catch (blobError) {
-        console.error('Vercel Blob error, falling back to direct serve:', blobError);
-        // Fallback: Serve directly via query parameter
-        const baseUrl = process.env.VERCEL_URL 
-          ? `https://${process.env.VERCEL_URL}` 
-          : req.headers.host 
-            ? `https://${req.headers.host}` 
-            : 'http://localhost:5000';
-        
-        plyUrl = `${baseUrl}/api/ply?data=${encodeURIComponent(result.ply_base64)}`;
-      }
-    } else {
-      // Local dev or no blob token: Serve directly via query parameter
-      const baseUrl = process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}` 
-        : req.headers.host 
-          ? `https://${req.headers.host}` 
-          : 'http://localhost:5000';
-      
-      plyUrl = `${baseUrl}/api/ply?data=${encodeURIComponent(result.ply_base64)}`;
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      throw new Error(
+        'Vercel Blob storage not configured. Please set BLOB_READ_WRITE_TOKEN environment variable in Vercel dashboard. ' +
+        'Go to: Project Settings > Environment Variables > Add BLOB_READ_WRITE_TOKEN'
+      );
     }
+
+    // Always use Vercel Blob (prevents memory issues from large URLs)
+    const blob = await put(fileName, plyBuffer, {
+      access: 'public',
+      contentType: 'application/x-ply',
+    });
+    plyUrl = blob.url;
 
     res.setHeader('Content-Type', 'application/json');
     res.json({
