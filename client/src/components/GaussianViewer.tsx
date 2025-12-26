@@ -66,13 +66,14 @@ export default function GaussianViewer({
 
         console.log("[GaussianViewer] Container size:", width, "x", height);
 
-        // Create renderer
+        // Create renderer with WHITE background (like SHARP-ML for progressive reveal effect)
         const renderer = new THREE.WebGLRenderer({
           antialias: true,
-          alpha: true,
+          alpha: false, // Opaque background for white reveal effect
         });
         renderer.setSize(width, height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0xffffff, 1); // White background
         container.appendChild(renderer.domElement);
         rendererRef.current = renderer;
 
@@ -195,27 +196,27 @@ export default function GaussianViewer({
   }, [modelUrl, modelType]);
 
   return (
-    <div className="relative w-full h-[60vh] bg-gray-900 rounded-lg overflow-hidden">
+    <div className="relative w-full h-[60vh] bg-white rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
       <div ref={containerRef} className="absolute inset-0" />
 
       {isLoading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 text-white z-10">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-lg">Loading 3D Scene</p>
-          <p className="text-sm mt-1">{loadProgress}%</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
+          <div className="w-12 h-12 border-4 border-gray-900 dark:border-gray-100 border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-lg text-gray-900 dark:text-gray-100">Loading 3D Scene</p>
+          <p className="text-sm mt-1 text-gray-600 dark:text-gray-400">{loadProgress}%</p>
         </div>
       )}
 
       {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 text-red-400 p-4 text-center z-10">
-          <p className="text-lg font-semibold mb-2">Failed to load 3D scene</p>
-          <p className="text-sm">{error}</p>
-          <p className="text-xs mt-2 text-gray-400">Check browser console for details</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-4 text-center z-10">
+          <p className="text-lg font-semibold mb-2 text-red-600 dark:text-red-400">Failed to load 3D scene</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">{error}</p>
+          <p className="text-xs mt-2 text-gray-500 dark:text-gray-400">Check browser console for details</p>
         </div>
       )}
 
       {!isLoading && !error && (
-        <div className="absolute bottom-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-xs z-10">
+        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 text-xs z-10 border border-gray-200 dark:border-gray-700 shadow-sm">
           <p>Drag to rotate • Scroll to fly through</p>
         </div>
       )}
