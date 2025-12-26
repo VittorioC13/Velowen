@@ -70,7 +70,7 @@ export default function PromptInput({
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Describe your 3D scene..."
+              placeholder="Imagine a world..."
               style={{ scrollPaddingBlock: '1rem' }}
               className="w-full h-32 px-4 py-4 pr-16 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-gray-900/20 dark:focus:ring-gray-100/20 focus:border-gray-900/40 dark:focus:border-gray-100/40 transition-all text-base overflow-y-auto box-border"
             />

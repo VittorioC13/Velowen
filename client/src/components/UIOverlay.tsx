@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { Link } from 'wouter';
-import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Snowflake, Leaf } from 'lucide-react';
 import type { Season } from '../App';
@@ -11,20 +9,6 @@ interface UIOverlayProps {
 }
 
 export function UIOverlay({ season, onSeasonChange }: UIOverlayProps) {
-  const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubscribe = () => {
-    if (!inputValue.trim()) return;
-    
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      setIsLoading(false);
-      setInputValue('');
-    }, 1500);
-  };
-
   const toggleSeason = () => {
     onSeasonChange(season === 'winter' ? 'spring' : 'winter');
   };
@@ -63,47 +47,13 @@ export function UIOverlay({ season, onSeasonChange }: UIOverlayProps) {
             <Button
               className={`mt-6 transition-colors duration-300 ${
                 isWinter 
-                  ? 'bg-gray-800 hover:bg-gray-700 text-white border-none' 
-                  : 'bg-white/20 hover:bg-white/30 text-white border border-white/30'
+                  ? 'bg-white/80 hover:bg-white/90 text-gray-800 border border-gray-300 shadow-lg backdrop-blur-sm' 
+                  : 'bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm'
               }`}
             >
-              Transform Image to 3D
+              Imagine a world...
             </Button>
           </Link>
-        </div>
-
-        <div className="w-full max-w-2xl px-4 pointer-events-auto">
-          <div className={`backdrop-blur-md rounded-lg border p-6 transition-all duration-300 ${
-            isWinter 
-              ? 'bg-white/60 border-gray-200 shadow-lg' 
-              : 'bg-black/40 border-white/20'
-          }`}>
-            <div className="flex gap-3">
-              <Input
-                type="email"
-                placeholder="Enter your email for early access..."
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
-                className={`flex-1 text-lg transition-colors duration-300 ${
-                  isWinter 
-                    ? 'bg-white/80 border-gray-300 text-gray-800 placeholder:text-gray-400' 
-                    : 'bg-white/10 border-white/30 text-white placeholder:text-gray-400'
-                }`}
-              />
-              <Button
-                onClick={handleSubscribe}
-                disabled={isLoading || !inputValue.trim()}
-                className={`transition-colors duration-300 ${
-                  isWinter 
-                    ? 'bg-gray-800 hover:bg-gray-700 text-white border-none' 
-                    : 'bg-white/20 hover:bg-white/30 text-white border border-white/30'
-                }`}
-              >
-                {isLoading ? 'Subscribing...' : 'Subscribe'}
-              </Button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

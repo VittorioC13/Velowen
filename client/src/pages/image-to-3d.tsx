@@ -181,7 +181,7 @@ export default function ImageTo3DPage() {
               Back to Home
             </button>
           </Link>
-          <h1 className="text-xl font-bold">Image to 3D</h1>
+          <h1 className="text-xl font-bold">Velowen</h1>
           <div className="w-24" />
         </div>
       </div>
