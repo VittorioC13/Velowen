@@ -34,12 +34,17 @@ export default async function handler(
 
     const result = await response.json();
 
-    if (!result.ply_data) {
+    // Check for success and ply_base64 (Modal returns ply_base64, not ply_data)
+    if (!result.success) {
+      throw new Error(result.error || '3D generation failed');
+    }
+
+    if (!result.ply_base64) {
       throw new Error('No PLY data returned from Modal');
     }
 
     // Convert base64 PLY data to buffer
-    const plyBuffer = Buffer.from(result.ply_data, 'base64');
+    const plyBuffer = Buffer.from(result.ply_base64, 'base64');
 
     // Send PLY file as response
     res.setHeader('Content-Type', 'application/octet-stream');
