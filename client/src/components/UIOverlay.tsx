@@ -44,15 +44,15 @@ export function UIOverlay({ season, onSeasonChange }: UIOverlayProps) {
             zen in world model
           </p>
           <Link href="/image-to-3d">
-            <Button
-              className={`mt-6 transition-colors duration-300 ${
+            <button
+              className={`mt-6 px-6 py-3 rounded-lg transition-all duration-300 font-medium text-lg ${
                 isWinter 
-                  ? 'bg-white/80 hover:bg-white/90 text-gray-800 border border-gray-300 shadow-lg backdrop-blur-sm' 
-                  : 'bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm'
+                  ? 'bg-gray-800/80 hover:bg-gray-800/90 text-white backdrop-blur-sm border border-gray-700/50 shadow-lg hover:shadow-xl' 
+                  : 'bg-white/10 hover:bg-white/15 text-white backdrop-blur-md border border-white/20 hover:border-white/30'
               }`}
             >
               Imagine a world...
-            </Button>
+            </button>
           </Link>
         </div>
       </div>
