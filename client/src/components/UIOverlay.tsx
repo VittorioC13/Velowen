@@ -26,15 +26,6 @@ export function UIOverlay({ season, onSeasonChange }: UIOverlayProps) {
       <div className="absolute top-0 left-0 right-0 pointer-events-auto">
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold ${
-                isWinter ? 'bg-gray-800 text-white' : 'bg-white/10 text-white'
-              }`}>
-                W
-              </div>
-            </div>
-
             {/* Search bar - minimalist */}
             <div className="flex-1">
               <input
@@ -69,16 +60,16 @@ export function UIOverlay({ season, onSeasonChange }: UIOverlayProps) {
         </div>
       </div>
 
-      {/* Centered branding - minimal */}
+      {/* Centered branding - original font */}
       <div className="flex flex-col items-center justify-center h-full pointer-events-none">
         <div className="text-center pointer-events-none">
-          <h1 className={`text-6xl sm:text-7xl font-light mb-2 tracking-wider transition-colors duration-300 ${
-            isWinter ? 'text-gray-800/90' : 'text-white/90'
+          <h1 className={`text-7xl font-bold mb-2 tracking-wider transition-colors duration-300 ${
+            isWinter ? 'text-gray-800 drop-shadow-sm' : 'text-white'
           }`}>
             VELOWEN
           </h1>
-          <p className={`text-sm sm:text-base transition-colors duration-300 font-light ${
-            isWinter ? 'text-gray-600/80' : 'text-white/70'
+          <p className={`text-xl transition-colors duration-300 ${
+            isWinter ? 'text-gray-600' : 'text-gray-300'
           }`}>
             zen in world model
           </p>
