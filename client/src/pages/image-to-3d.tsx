@@ -107,14 +107,12 @@ export default function ImageTo3DPage() {
 
       const result = await response.json();
       
-      if (!result.success || !result.ply_base64) {
-        throw new Error(result.error || "No PLY data received");
+      if (!result.success || !result.plyUrl) {
+        throw new Error(result.error || "No PLY URL received");
       }
 
-      // Convert base64 to data URL (Gaussian Splats library needs data URL, not blob URL)
-      const base64Data = result.ply_base64;
-      const dataUrl = `data:application/octet-stream;base64,${base64Data}`;
-      setModelUrl(dataUrl);
+      // Use the URL directly (either Vercel Blob URL or data URL for local dev)
+      setModelUrl(result.plyUrl);
 
       setProgress(100);
       setStatus("complete");

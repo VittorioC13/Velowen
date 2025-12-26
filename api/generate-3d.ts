@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { put } from '@vercel/blob';
 
 export default async function handler(
   req: VercelRequest,
@@ -46,11 +47,30 @@ export default async function handler(
     // Convert base64 PLY data to buffer
     const plyBuffer = Buffer.from(result.ply_base64, 'base64');
 
-    // Return JSON with base64 data so frontend can create blob URL properly
+    // Generate a unique ID for this PLY file
+    const id = `ply-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const fileName = `outputs/${id}.ply`;
+
+    // Upload to Vercel Blob storage (like SHARP-ML does)
+    let plyUrl: string;
+    
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      // Production: Use Vercel Blob
+      const blob = await put(fileName, plyBuffer, {
+        access: 'public',
+        contentType: 'application/x-ply',
+      });
+      plyUrl = blob.url;
+    } else {
+      // Local dev: Return base64 and let frontend create data URL
+      // The viewer should handle data URLs
+      plyUrl = `data:application/x-ply;base64,${result.ply_base64}`;
+    }
+
     res.setHeader('Content-Type', 'application/json');
     res.json({
       success: true,
-      ply_base64: result.ply_base64,
+      plyUrl: plyUrl,
     });
   } catch (error) {
     console.error('Error generating 3D:', error);
