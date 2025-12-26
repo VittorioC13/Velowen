@@ -56,15 +56,32 @@ export default async function handler(
     
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       // Production: Use Vercel Blob
-      const blob = await put(fileName, plyBuffer, {
-        access: 'public',
-        contentType: 'application/x-ply',
-      });
-      plyUrl = blob.url;
+      try {
+        const blob = await put(fileName, plyBuffer, {
+          access: 'public',
+          contentType: 'application/x-ply',
+        });
+        plyUrl = blob.url;
+      } catch (blobError) {
+        console.error('Vercel Blob error, falling back to direct serve:', blobError);
+        // Fallback: Serve directly via query parameter
+        const baseUrl = process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}` 
+          : req.headers.host 
+            ? `https://${req.headers.host}` 
+            : 'http://localhost:5000';
+        
+        plyUrl = `${baseUrl}/api/ply?data=${encodeURIComponent(result.ply_base64)}`;
+      }
     } else {
-      // Local dev: Return base64 and let frontend create data URL
-      // The viewer should handle data URLs
-      plyUrl = `data:application/x-ply;base64,${result.ply_base64}`;
+      // Local dev or no blob token: Serve directly via query parameter
+      const baseUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : req.headers.host 
+          ? `https://${req.headers.host}` 
+          : 'http://localhost:5000';
+      
+      plyUrl = `${baseUrl}/api/ply?data=${encodeURIComponent(result.ply_base64)}`;
     }
 
     res.setHeader('Content-Type', 'application/json');
