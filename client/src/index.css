@@ -28,3 +28,33 @@ canvas {
   height: 100% !important;
   touch-action: none;
 }
+
+/* SHARP-ML upload zone styles */
+.upload-zone {
+  border: 2px dashed rgb(229, 231, 235);
+  border-radius: 0.75rem;
+  padding: 3rem;
+  transition: all 0.2s;
+}
+
+.dark .upload-zone {
+  border-color: rgb(55, 65, 81);
+}
+
+.upload-zone.active {
+  border-color: rgb(59, 130, 246);
+  background-color: rgb(239, 246, 255);
+}
+
+.dark .upload-zone.active {
+  border-color: rgb(59, 130, 246);
+  background-color: rgb(30, 58, 138);
+}
+
+.upload-zone:hover:not(.opacity-50) {
+  border-color: rgb(156, 163, 175);
+}
+
+.dark .upload-zone:hover:not(.opacity-50) {
+  border-color: rgb(107, 114, 128);
+}
