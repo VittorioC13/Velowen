@@ -113,26 +113,9 @@ export default function GaussianViewer({
 
         viewerRef.current = { viewer, camera, renderer, controls };
 
-        // Handle blob URLs - convert to data URL if needed
-        let urlToLoad = modelUrl;
-        if (modelUrl.startsWith('blob:')) {
-          // For blob URLs, we need to fetch and convert to data URL
-          try {
-            const response = await fetch(modelUrl);
-            const blob = await response.blob();
-            urlToLoad = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            });
-          } catch (err) {
-            console.error('Error converting blob to data URL:', err);
-            // Fall back to original URL
-          }
-        }
-
-        await viewer.addSplatScene(urlToLoad, {
+        // Load the PLY file - blob URLs should work directly
+        console.log('Loading PLY from URL:', modelUrl);
+        await viewer.addSplatScene(modelUrl, {
           splatAlphaRemovalThreshold: 5,
           showLoadingUI: false,
           progressiveLoad: true,

@@ -46,10 +46,12 @@ export default async function handler(
     // Convert base64 PLY data to buffer
     const plyBuffer = Buffer.from(result.ply_base64, 'base64');
 
-    // Send PLY file as response
-    res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', 'attachment; filename="scene.ply"');
-    res.send(plyBuffer);
+    // Return JSON with base64 data so frontend can create blob URL properly
+    res.setHeader('Content-Type', 'application/json');
+    res.json({
+      success: true,
+      ply_base64: result.ply_base64,
+    });
   } catch (error) {
     console.error('Error generating 3D:', error);
     res.status(500).json({

@@ -105,7 +105,20 @@ export default function ImageTo3DPage() {
       setProgress(80);
       setStatus("generating");
 
-      const blob = await response.blob();
+      const result = await response.json();
+      
+      if (!result.success || !result.ply_base64) {
+        throw new Error(result.error || "No PLY data received");
+      }
+
+      // Convert base64 to blob and create URL
+      const base64Data = result.ply_base64;
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: 'application/octet-stream' });
       const url = URL.createObjectURL(blob);
       setModelUrl(url);
 
