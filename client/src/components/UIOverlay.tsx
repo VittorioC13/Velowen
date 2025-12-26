@@ -45,10 +45,10 @@ export function UIOverlay({ season, onSeasonChange }: UIOverlayProps) {
           </p>
           <Link href="/image-to-3d">
             <button
-              className={`mt-6 px-8 py-3 rounded-xl transition-all duration-300 font-medium text-lg backdrop-blur-md ${
+              className={`mt-6 px-8 py-3 rounded-xl transition-all duration-300 font-medium text-lg backdrop-blur-sm ${
                 isWinter 
-                  ? 'bg-gray-700/40 hover:bg-gray-700/50 text-gray-800 border border-gray-600/30 shadow-sm hover:shadow-md' 
-                  : 'bg-white/10 hover:bg-white/15 text-white border border-white/20 hover:border-white/30 shadow-sm'
+                  ? 'bg-white/30 hover:bg-white/40 text-gray-700 border border-white/40 hover:border-white/50 shadow-sm' 
+                  : 'bg-white/10 hover:bg-white/15 text-white border border-white/20 hover:border-white/30'
               }`}
             >
               Imagine a world...
