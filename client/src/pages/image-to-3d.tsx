@@ -203,11 +203,9 @@ export default function ImageTo3DPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
-                    className="text-2xl sm:text-3xl font-semibold tracking-tight leading-tight mb-1 flex items-center gap-2"
+                    className="text-2xl sm:text-3xl font-semibold tracking-tight leading-tight mb-1"
                   >
-                    <span>2D</span>
-                    <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
-                    <span>3D</span>
+                    World Model
                   </motion.h1>
 
                   <motion.p
