@@ -15,7 +15,7 @@ import GaussianViewer from "../components/GaussianViewer";
 import ProcessingStatus from "../components/ProcessingStatus";
 import PixelatedImage from "../components/PixelatedImage";
 import DemoSection from "../components/DemoSection";
-import { DEMO_CONFIG } from "../config/demo";
+import { DEMO_ITEMS } from "../config/demo";
 
 type AppState = "upload" | "processing" | "viewing" | "error";
 type ProcessingStage = "uploading" | "processing" | "generating" | "complete" | "error";
@@ -281,12 +281,16 @@ export default function ImageTo3DPage() {
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <DemoSection
-                          demoImageUrl={DEMO_CONFIG.imageUrl}
-                          plyUrl={DEMO_CONFIG.plyUrl}
-                          title={DEMO_CONFIG.title}
-                          description={DEMO_CONFIG.description}
-                        />
+                        {/* Demo Grid - 4 columns on desktop, 2 on tablet, 1 on mobile */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                          {DEMO_ITEMS.map((demo, index) => (
+                            <DemoSection
+                              key={index}
+                              demoImageUrl={demo.imageUrl}
+                              plyUrl={demo.plyUrl}
+                            />
+                          ))}
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>

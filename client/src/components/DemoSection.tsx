@@ -10,17 +10,11 @@ interface DemoSectionProps {
   demoImageUrl: string;
   /** URL to the pre-generated PLY file (optional - will show image even without PLY) */
   plyUrl?: string;
-  /** Demo title */
-  title?: string;
-  /** Demo description */
-  description?: string;
 }
 
 export default function DemoSection({
   demoImageUrl,
   plyUrl,
-  title = "Try Our Demo",
-  description = "Click the image to see how we transform 2D photos into interactive 3D worlds",
 }: DemoSectionProps) {
   const [isViewing, setIsViewing] = useState(false);
   const [isReplaying, setIsReplaying] = useState(false);
@@ -101,7 +95,7 @@ export default function DemoSection({
             onClick={handleImageClick}
           >
             {/* 2D Photo Thumbnail */}
-            <div className="relative w-full max-w-2xl mx-auto aspect-[4/3] rounded-2xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-[1.02]">
+            <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.03]">
               <img
                 src={currentImageUrl}
                 alt="Demo - Click to view 3D"
@@ -162,13 +156,6 @@ export default function DemoSection({
               )}
             </div>
 
-            {/* Demo info */}
-            <div className="mt-6 text-center">
-              <h3 className="text-lg font-semibold mb-2">{title}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {description}
-              </p>
-            </div>
           </motion.div>
         ) : (
           <motion.div
