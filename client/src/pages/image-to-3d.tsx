@@ -101,6 +101,7 @@ export default function ImageTo3DPage() {
       setAppState("error");
     }
   }, []);
+  
   const [processingStage, setProcessingStage] = useState<ProcessingStage>("uploading");
   const [processingMode, setProcessingMode] = useState<"upload" | "prompt">("upload");
   const [progress, setProgress] = useState(0);
@@ -110,6 +111,41 @@ export default function ImageTo3DPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentSceneName, setCurrentSceneName] = useState<string | null>(null);
+
+  // Check if coming from demo click
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const demoTrigger = sessionStorage.getItem('demoTrigger');
+    
+    console.log('Checking for demo:', { urlParam: urlParams.get('demo'), trigger: demoTrigger });
+    
+    if (urlParams.get('demo') === 'true' || demoTrigger) {
+      const demoImageUrl = sessionStorage.getItem('demoImageUrl');
+      const demoPlyUrl = sessionStorage.getItem('demoPlyUrl');
+      
+      console.log('Demo detected - image:', demoImageUrl, 'ply:', demoPlyUrl);
+      
+      // Clear trigger
+      sessionStorage.removeItem('demoTrigger');
+      
+      if (demoPlyUrl) {
+        // If PLY exists, go straight to viewing
+        console.log('Loading existing PLY:', demoPlyUrl);
+        setModelUrl(demoPlyUrl);
+        setAppState("viewing");
+        setPreviewUrl(demoImageUrl || null);
+      } else if (demoImageUrl) {
+        // If no PLY, generate it
+        console.log('Generating PLY for:', demoImageUrl);
+        handleDemoImageGenerate(demoImageUrl);
+      }
+      
+      // Clean up URL
+      if (urlParams.get('demo')) {
+        setLocation('/image-to-3d');
+      }
+    }
+  }, [setLocation, handleDemoImageGenerate]);
 
   const handleImageSelect = useCallback(async (file: File) => {
     setAppState("processing");
