@@ -28,14 +28,14 @@ export default function DemoSection({
     
     // Store demo info for full-screen viewer
     sessionStorage.setItem('demoImageUrl', currentImageUrl);
+    sessionStorage.setItem('demoTrigger', Date.now().toString());
     if (plyUrl) {
       sessionStorage.setItem('demoPlyUrl', plyUrl);
     }
     
-    // Redirect to full-screen viewing state
-    console.log('Redirecting to /image-to-3d?demo=true');
-    setLocation('/image-to-3d?demo=true');
-  }, [currentImageUrl, plyUrl, setLocation]);
+    // Force hard navigation to trigger useEffect
+    window.location.href = '/image-to-3d?demo=true&t=' + Date.now();
+  }, [currentImageUrl, plyUrl]);
 
   return (
     <motion.div
