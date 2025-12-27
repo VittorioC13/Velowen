@@ -18,34 +18,6 @@ export const DEMO_ITEMS: DemoItem[] = [
     imageUrl: "/demo/yukino.jpg",
     plyUrl: "", // Will be set after generation
   },
-  // Add more demo items here - at least 8 total
-  {
-    imageUrl: "/demo/yukino.jpg", // Placeholder - replace with actual images
-    plyUrl: "",
-  },
-  {
-    imageUrl: "/demo/yukino.jpg",
-    plyUrl: "",
-  },
-  {
-    imageUrl: "/demo/yukino.jpg",
-    plyUrl: "",
-  },
-  {
-    imageUrl: "/demo/yukino.jpg",
-    plyUrl: "",
-  },
-  {
-    imageUrl: "/demo/yukino.jpg",
-    plyUrl: "",
-  },
-  {
-    imageUrl: "/demo/yukino.jpg",
-    plyUrl: "",
-  },
-  {
-    imageUrl: "/demo/yukino.jpg",
-    plyUrl: "",
-  },
+  // Add more demo items here when ready
 ];
 
