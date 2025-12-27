@@ -281,23 +281,12 @@ export default function ImageTo3DPage() {
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
                       >
-                        {DEMO_CONFIG.plyUrl ? (
-                          <DemoSection
-                            demoImageUrl={DEMO_CONFIG.imageUrl}
-                            plyUrl={DEMO_CONFIG.plyUrl}
-                            title={DEMO_CONFIG.title}
-                            description={DEMO_CONFIG.description}
-                          />
-                        ) : (
-                          <div className="text-center py-12 px-4">
-                            <p className="text-gray-500 dark:text-gray-400 mb-4">
-                              Demo is being set up. Please generate the PLY file first.
-                            </p>
-                            <p className="text-sm text-gray-400 dark:text-gray-500">
-                              Run the generation script to create the demo PLY file.
-                            </p>
-                          </div>
-                        )}
+                        <DemoSection
+                          demoImageUrl={DEMO_CONFIG.imageUrl}
+                          plyUrl={DEMO_CONFIG.plyUrl}
+                          title={DEMO_CONFIG.title}
+                          description={DEMO_CONFIG.description}
+                        />
                       </motion.div>
                     )}
                   </AnimatePresence>

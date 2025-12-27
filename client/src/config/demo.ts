@@ -9,13 +9,15 @@
 
 export const DEMO_CONFIG = {
   // Path to the 2D demo image (relative to public folder)
+  // Place your Yukino image at: public/demo/yukino.jpg
   imageUrl: "/demo/yukino.jpg",
   
   // URL to the pre-generated PLY file
-  // This will be set after running the generation script
+  // Generate this by running: node scripts/generate-demo-ply.js public/demo/yukino.jpg
+  // Then update this URL with the result
   plyUrl: "", // Will be set after generation
   
   title: "Yukino's Winter World",
-  description: "Experience how we transform anime illustrations into immersive 3D worlds",
+  description: "Click the image to see how we transform 2D photos into interactive 3D worlds",
 };
 

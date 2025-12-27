@@ -8,8 +8,8 @@ import GaussianViewer from "./GaussianViewer";
 interface DemoSectionProps {
   /** URL to the 2D demo image */
   demoImageUrl: string;
-  /** URL to the pre-generated PLY file */
-  plyUrl: string;
+  /** URL to the pre-generated PLY file (optional - will show image even without PLY) */
+  plyUrl?: string;
   /** Demo title */
   title?: string;
   /** Demo description */
@@ -27,11 +27,15 @@ export default function DemoSection({
   const viewerKeyRef = useRef(0);
 
   const handleImageClick = useCallback(() => {
+    if (!plyUrl) {
+      // If no PLY URL, don't switch to viewer
+      return;
+    }
     setIsViewing(true);
     setIsReplaying(true);
     // Force re-render of viewer to replay the loading animation
     viewerKeyRef.current += 1;
-  }, []);
+  }, [plyUrl]);
 
   const handleReset = useCallback(() => {
     setIsViewing(false);
@@ -52,7 +56,7 @@ export default function DemoSection({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="relative group cursor-pointer"
+            className={`relative group ${plyUrl ? 'cursor-pointer' : 'cursor-default'}`}
             onClick={handleImageClick}
           >
             {/* 2D Photo Thumbnail */}
@@ -63,19 +67,23 @@ export default function DemoSection({
                 className="w-full h-full object-cover"
               />
               
-              {/* Overlay with play button */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="w-16 h-16 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                    <Play className="w-8 h-8 text-gray-900 ml-1" fill="currentColor" />
+              {/* Overlay with play button - only show if PLY URL exists */}
+              {plyUrl && (
+                <>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="w-16 h-16 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                        <Play className="w-8 h-8 text-gray-900 ml-1" fill="currentColor" />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Hint text */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg bg-white/90 backdrop-blur-sm text-sm text-gray-700 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                Click to view in 3D
-              </div>
+                  {/* Hint text */}
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg bg-white/90 backdrop-blur-sm text-sm text-gray-700 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    Click to view in 3D
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Demo info */}
