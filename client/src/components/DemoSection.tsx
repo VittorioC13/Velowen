@@ -26,16 +26,49 @@ export default function DemoSection({
   const [isReplaying, setIsReplaying] = useState(false);
   const viewerKeyRef = useRef(0);
 
-  const handleImageClick = useCallback(() => {
+  const handleImageClick = useCallback(async () => {
     if (!plyUrl) {
-      // If no PLY URL, don't switch to viewer
+      // Generate PLY on the fly from the demo image
+      setIsViewing(true);
+      setIsReplaying(true);
+      
+      try {
+        // Convert image to base64
+        const response = await fetch(demoImageUrl);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64 = (reader.result as string).split(',')[1];
+          
+          // Call generate-3d API
+          const genResponse = await fetch('/api/generate-3d', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64 }),
+          });
+          
+          if (genResponse.ok) {
+            const result = await genResponse.json();
+            if (result.plyUrl) {
+              // Update config and reload viewer
+              viewerKeyRef.current += 1;
+              // Store PLY URL for this session
+              sessionStorage.setItem('demoPlyUrl', result.plyUrl);
+            }
+          }
+        };
+        reader.readAsDataURL(blob);
+      } catch (error) {
+        console.error('Failed to generate PLY:', error);
+      }
       return;
     }
+    
     setIsViewing(true);
     setIsReplaying(true);
     // Force re-render of viewer to replay the loading animation
     viewerKeyRef.current += 1;
-  }, [plyUrl]);
+  }, [plyUrl, demoImageUrl]);
 
   const handleReset = useCallback(() => {
     setIsViewing(false);
@@ -56,7 +89,7 @@ export default function DemoSection({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className={`relative group ${plyUrl ? 'cursor-pointer' : 'cursor-default'}`}
+            className="relative group cursor-pointer"
             onClick={handleImageClick}
           >
             {/* 2D Photo Thumbnail */}
@@ -68,8 +101,8 @@ export default function DemoSection({
                 style={{ imageRendering: 'auto' }}
               />
               
-              {/* Overlay with play button - only show if PLY URL exists */}
-              {plyUrl && (
+              {/* Overlay with play button */}
+              {true && (
                 <>
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -81,7 +114,7 @@ export default function DemoSection({
 
                   {/* Hint text */}
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg bg-white/95 text-sm text-gray-700 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    Click to view in 3D
+                    {plyUrl ? 'Click to view in 3D' : 'Click to generate 3D'}
                   </div>
                 </>
               )}
@@ -116,11 +149,20 @@ export default function DemoSection({
 
             {/* 3D Viewer with replay capability */}
             <div className="relative w-full h-[60vh] bg-white rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-              <GaussianViewer
-                key={viewerKeyRef.current}
-                modelUrl={plyUrl}
-                modelType="ply"
-              />
+              {(plyUrl || sessionStorage.getItem('demoPlyUrl')) ? (
+                <GaussianViewer
+                  key={viewerKeyRef.current}
+                  modelUrl={plyUrl || sessionStorage.getItem('demoPlyUrl') || ''}
+                  modelType="ply"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-white">
+                  <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600">Generating 3D scene...</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Replay hint */}
