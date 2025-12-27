@@ -14,6 +14,8 @@ import PromptInput from "../components/PromptInput";
 import GaussianViewer from "../components/GaussianViewer";
 import ProcessingStatus from "../components/ProcessingStatus";
 import PixelatedImage from "../components/PixelatedImage";
+import DemoSection from "../components/DemoSection";
+import { DEMO_CONFIG } from "../config/demo";
 
 type AppState = "upload" | "processing" | "viewing" | "error";
 type ProcessingStage = "uploading" | "processing" | "generating" | "complete" | "error";
@@ -21,7 +23,7 @@ type ModelType = "ply" | "glb" | "gltf";
 
 export default function ImageTo3DPage() {
   const [appState, setAppState] = useState<AppState>("upload");
-  const [activeTab, setActiveTab] = useState<"upload" | "prompt">("prompt");
+  const [activeTab, setActiveTab] = useState<"upload" | "demo">("demo");
   const [processingStage, setProcessingStage] = useState<ProcessingStage>("uploading");
   const [processingMode, setProcessingMode] = useState<"upload" | "prompt">("upload");
   const [progress, setProgress] = useState(0);
@@ -227,15 +229,15 @@ export default function ImageTo3DPage() {
                 >
                   <div className="inline-flex p-1 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                     <button
-                      onClick={() => setActiveTab("prompt")}
+                      onClick={() => setActiveTab("demo")}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                        activeTab === "prompt"
+                        activeTab === "demo"
                           ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-sm"
                           : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                       }`}
                     >
-                      <Wand2 className="w-4 h-4" strokeWidth={2} />
-                      <span>Prompt</span>
+                      <Box className="w-4 h-4" strokeWidth={2} />
+                      <span>Demo</span>
                     </button>
                     <button
                       onClick={() => setActiveTab("upload")}
@@ -251,7 +253,7 @@ export default function ImageTo3DPage() {
                   </div>
                 </motion.div>
 
-                {/* Upload Zone / Prompt Input */}
+                {/* Demo Section / Upload Zone */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -273,15 +275,29 @@ export default function ImageTo3DPage() {
                       </motion.div>
                     ) : (
                       <motion.div
-                        key="prompt-tab"
+                        key="demo-tab"
                         initial={{ opacity: 0, x: 10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <PromptInput
-                          onSubmit={handlePromptSubmit}
-                        />
+                        {DEMO_CONFIG.plyUrl ? (
+                          <DemoSection
+                            demoImageUrl={DEMO_CONFIG.imageUrl}
+                            plyUrl={DEMO_CONFIG.plyUrl}
+                            title={DEMO_CONFIG.title}
+                            description={DEMO_CONFIG.description}
+                          />
+                        ) : (
+                          <div className="text-center py-12 px-4">
+                            <p className="text-gray-500 dark:text-gray-400 mb-4">
+                              Demo is being set up. Please generate the PLY file first.
+                            </p>
+                            <p className="text-sm text-gray-400 dark:text-gray-500">
+                              Run the generation script to create the demo PLY file.
+                            </p>
+                          </div>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
