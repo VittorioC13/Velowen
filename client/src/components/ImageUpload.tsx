@@ -170,7 +170,7 @@ export default function ImageUpload({
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm leading-relaxed">
                   Drag and drop or click to select a photo. We&apos;ll transform
-                  it into an interactive 3D scene.
+                  it into an interactive world.
                 </p>
               </div>
 

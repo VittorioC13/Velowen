@@ -214,7 +214,7 @@ export default function ImageTo3DPage() {
                     transition={{ delay: 0.1 }}
                     className="text-base sm:text-lg text-gray-500 dark:text-gray-400 leading-snug"
                   >
-                    Transform any photo into an interactive 3D scene.
+                    Transform any photo into an interactive world.
                   </motion.p>
                 </div>
 
