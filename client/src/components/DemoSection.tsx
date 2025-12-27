@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, RotateCcw } from "lucide-react";
+import { Play, RotateCcw, Upload } from "lucide-react";
 import GaussianViewer from "./GaussianViewer";
 
 interface DemoSectionProps {
@@ -24,7 +24,9 @@ export default function DemoSection({
 }: DemoSectionProps) {
   const [isViewing, setIsViewing] = useState(false);
   const [isReplaying, setIsReplaying] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState(demoImageUrl);
   const viewerKeyRef = useRef(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageClick = useCallback(async () => {
     if (!plyUrl) {
@@ -41,10 +43,16 @@ export default function DemoSection({
           const base64 = (reader.result as string).split(',')[1];
           
           // Call generate-3d API
+          // Use current image (might be data URL from upload)
+          let imageBase64 = base64;
+          if (currentImageUrl.startsWith('data:')) {
+            imageBase64 = currentImageUrl.split(',')[1];
+          }
+          
           const genResponse = await fetch('/api/generate-3d', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: base64 }),
+            body: JSON.stringify({ image: imageBase64 }),
           });
           
           if (genResponse.ok) {
@@ -68,7 +76,7 @@ export default function DemoSection({
     setIsReplaying(true);
     // Force re-render of viewer to replay the loading animation
     viewerKeyRef.current += 1;
-  }, [plyUrl, demoImageUrl]);
+  }, [plyUrl, demoImageUrl, currentImageUrl]);
 
   const handleReset = useCallback(() => {
     setIsViewing(false);
@@ -95,10 +103,44 @@ export default function DemoSection({
             {/* 2D Photo Thumbnail */}
             <div className="relative w-full max-w-2xl mx-auto aspect-[4/3] rounded-2xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-[1.02]">
               <img
-                src={demoImageUrl}
+                src={currentImageUrl}
                 alt="Demo - Click to view 3D"
                 className="w-full h-full object-cover"
                 style={{ imageRendering: 'auto' }}
+                onError={() => {
+                  // If image fails to load, show placeholder
+                  setCurrentImageUrl('/demo/yukino.jpg');
+                }}
+              />
+              
+              {/* Upload button overlay - top right */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                className="absolute top-3 right-3 p-2 rounded-lg bg-white/90 hover:bg-white transition-all shadow-lg opacity-0 group-hover:opacity-100 z-20"
+                title="Replace image"
+              >
+                <Upload className="w-4 h-4 text-gray-900" />
+              </button>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const result = event.target?.result as string;
+                      setCurrentImageUrl(result);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
               />
               
               {/* Overlay with play button */}
