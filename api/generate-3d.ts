@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { put } from '@vercel/blob';
+import { put, list, del } from '@vercel/blob';
 
 export default async function handler(
   req: VercelRequest,
@@ -59,6 +59,32 @@ export default async function handler(
         'Vercel Blob storage not configured. Please set BLOB_READ_WRITE_TOKEN environment variable in Vercel dashboard. ' +
         'Go to: Project Settings > Environment Variables > Add BLOB_READ_WRITE_TOKEN'
       );
+    }
+
+    // Clean up old files before uploading (keep only 10 most recent)
+    try {
+      const { blobs } = await list({ prefix: 'outputs/' });
+      if (blobs.length > 10) {
+        // Sort by uploadedAt (newest first) and delete old ones
+        const sortedBlobs = blobs.sort((a, b) => {
+          const timeA = new Date(a.uploadedAt).getTime();
+          const timeB = new Date(b.uploadedAt).getTime();
+          return timeB - timeA;
+        });
+        
+        const toDelete = sortedBlobs.slice(10);
+        for (const blob of toDelete) {
+          try {
+            await del(blob.url);
+            console.log(`Cleaned up old file: ${blob.pathname}`);
+          } catch (error) {
+            console.error(`Failed to delete ${blob.pathname}:`, error);
+          }
+        }
+      }
+    } catch (cleanupError) {
+      // Don't fail the request if cleanup fails
+      console.warn('Cleanup failed, continuing:', cleanupError);
     }
 
     // Always use Vercel Blob (prevents memory issues from large URLs)
