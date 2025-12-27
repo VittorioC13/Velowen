@@ -26,28 +26,6 @@ export default function ImageTo3DPage() {
   const [appState, setAppState] = useState<AppState>("upload");
   const [activeTab, setActiveTab] = useState<"upload" | "demo">("demo");
   
-  // Check if coming from demo click
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('demo') === 'true') {
-      const demoImageUrl = sessionStorage.getItem('demoImageUrl');
-      const demoPlyUrl = sessionStorage.getItem('demoPlyUrl');
-      
-      if (demoPlyUrl) {
-        // If PLY exists, go straight to viewing
-        setModelUrl(demoPlyUrl);
-        setAppState("viewing");
-        setPreviewUrl(demoImageUrl || null);
-      } else if (demoImageUrl) {
-        // If no PLY, generate it
-        handleDemoImageGenerate(demoImageUrl);
-      }
-      
-      // Clean up URL
-      setLocation('/image-to-3d');
-    }
-  }, [setLocation]);
-  
   const handleDemoImageGenerate = useCallback(async (imageUrl: string) => {
     setAppState("processing");
     setProcessingMode("upload");

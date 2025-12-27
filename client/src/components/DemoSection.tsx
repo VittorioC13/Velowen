@@ -20,7 +20,12 @@ export default function DemoSection({
   const [currentImageUrl, setCurrentImageUrl] = useState(demoImageUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageClick = useCallback(() => {
+  const handleImageClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('Demo panel clicked', { currentImageUrl, plyUrl });
+    
     // Store demo info for full-screen viewer
     sessionStorage.setItem('demoImageUrl', currentImageUrl);
     if (plyUrl) {
@@ -28,6 +33,7 @@ export default function DemoSection({
     }
     
     // Redirect to full-screen viewing state
+    console.log('Redirecting to /image-to-3d?demo=true');
     setLocation('/image-to-3d?demo=true');
   }, [currentImageUrl, plyUrl, setLocation]);
 
