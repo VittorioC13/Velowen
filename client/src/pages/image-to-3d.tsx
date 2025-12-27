@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from "react";
-import { Link } from "wouter";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -22,8 +22,107 @@ type ProcessingStage = "uploading" | "processing" | "generating" | "complete" | 
 type ModelType = "ply" | "glb" | "gltf";
 
 export default function ImageTo3DPage() {
+  const [location, setLocation] = useLocation();
   const [appState, setAppState] = useState<AppState>("upload");
   const [activeTab, setActiveTab] = useState<"upload" | "demo">("demo");
+  
+  // Check if coming from demo click
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('demo') === 'true') {
+      const demoImageUrl = sessionStorage.getItem('demoImageUrl');
+      const demoPlyUrl = sessionStorage.getItem('demoPlyUrl');
+      
+      if (demoPlyUrl) {
+        // If PLY exists, go straight to viewing
+        setModelUrl(demoPlyUrl);
+        setAppState("viewing");
+        setPreviewUrl(demoImageUrl || null);
+      } else if (demoImageUrl) {
+        // If no PLY, generate it
+        handleDemoImageGenerate(demoImageUrl);
+      }
+      
+      // Clean up URL
+      setLocation('/image-to-3d');
+    }
+  }, [setLocation]);
+  
+  const handleDemoImageGenerate = useCallback(async (imageUrl: string) => {
+    setAppState("processing");
+    setProcessingMode("upload");
+    setProcessingStage("uploading");
+    setProgress(0);
+    setStageProgress(undefined);
+    setError(null);
+    setPreviewUrl(imageUrl);
+    
+    try {
+      // Convert image to base64
+      let base64: string;
+      if (imageUrl.startsWith('data:')) {
+        base64 = imageUrl.split(',')[1];
+      } else {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1]);
+          };
+          reader.readAsDataURL(blob);
+        });
+      }
+      
+      setProgress(10);
+      setProcessingStage("processing");
+      setStageProgress(0);
+      
+      const estimatedDuration = 60000;
+      const startTime = Date.now();
+      const progressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const rawProgress = Math.min(95, (elapsed / estimatedDuration) * 100);
+        const easedProgress = rawProgress < 50 
+          ? rawProgress 
+          : 50 + (rawProgress - 50) * 0.5;
+        setStageProgress(Math.min(95, easedProgress));
+      }, 500);
+      
+      const response = await fetch("/api/generate-3d", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64 }),
+      });
+      
+      clearInterval(progressInterval);
+      setStageProgress(100);
+      setProgress(30);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to generate 3D scene");
+      }
+      
+      const result = await response.json();
+      if (!result.success || !result.plyUrl) {
+        throw new Error(result.message || "No PLY URL returned");
+      }
+      
+      setModelUrl(result.plyUrl);
+      setModelType("ply");
+      setProgress(100);
+      setProcessingStage("complete");
+      setAppState("viewing");
+      
+      // Store for future use
+      sessionStorage.setItem('demoPlyUrl', result.plyUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate 3D scene");
+      setAppState("error");
+    }
+  }, []);
   const [processingStage, setProcessingStage] = useState<ProcessingStage>("uploading");
   const [processingMode, setProcessingMode] = useState<"upload" | "prompt">("upload");
   const [progress, setProgress] = useState(0);
