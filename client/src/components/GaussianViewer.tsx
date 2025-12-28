@@ -287,12 +287,6 @@ export default function GaussianViewer({
           <p className="text-xs mt-2 text-gray-500 dark:text-gray-400">Check browser console for details</p>
         </div>
       )}
-
-      {!isLoading && !error && (
-        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 text-xs z-10 border border-gray-200 dark:border-gray-700 shadow-sm">
-          <p>Drag to rotate • Scroll/WASD to fly • Space/Shift for up/down</p>
-        </div>
-      )}
     </div>
   );
 }
