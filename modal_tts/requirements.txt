@@ -1,0 +1,18 @@
+# GPT-SoVITS Dependencies for Modal
+# Most dependencies are installed via Modal Image, but listing here for reference
+
+torch>=2.0.0
+torchaudio>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+librosa>=0.10.0
+soundfile>=0.12.0
+cn2an>=0.5.17
+jieba>=0.42.1
+pypinyin>=0.49.0
+g2pW>=0.1.2.7.4
+pypinyin-g2pW>=0.1.2.7.4
+paddlespeech>=1.0.0
+transformers>=4.30.0
+so-vits-svc-fork>=4.1.1
+

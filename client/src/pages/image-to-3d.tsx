@@ -15,6 +15,7 @@ import GaussianViewer from "../components/GaussianViewer";
 import ProcessingStatus from "../components/ProcessingStatus";
 import PixelatedImage from "../components/PixelatedImage";
 import DemoSection from "../components/DemoSection";
+import VoiceChat from "../components/VoiceChat";
 import { DEMO_ITEMS } from "../config/demo";
 
 type AppState = "upload" | "processing" | "viewing" | "error";
@@ -496,9 +497,15 @@ export default function ImageTo3DPage() {
 
                 <GaussianViewer
                   modelUrl={modelUrl}
+                  className="mb-20"
                   modelType={modelType}
                 />
               </motion.div>
+            )}
+
+            {/* Voice Chat - Only show when viewing */}
+            {appState === "viewing" && (
+              <VoiceChat character="yukino" />
             )}
 
             {appState === "error" && (
