@@ -105,6 +105,34 @@ export default function GaussianViewer({
 
         renderer.domElement.addEventListener("wheel", handleWheel, { passive: false });
 
+        // WASD keyboard controls for flying
+        const keysPressed = new Set<string>();
+        const moveSpeed = 0.1;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+          // Only handle if canvas is focused or if it's a movement key
+          const key = e.key.toLowerCase();
+          if (['w', 'a', 's', 'd', ' ', 'shift'].includes(key)) {
+            keysPressed.add(key);
+            e.preventDefault();
+          }
+        };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+          const key = e.key.toLowerCase();
+          keysPressed.delete(key);
+        };
+
+        // Add keyboard listeners to window (so it works even when canvas not focused)
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
+
+        // Store cleanup function
+        const cleanupKeyboard = () => {
+          window.removeEventListener("keydown", handleKeyDown);
+          window.removeEventListener("keyup", handleKeyUp);
+        };
+
         // Create viewer - EXACT SHARP-ML CONFIGURATION
         const viewer = new GaussianSplats3D.Viewer({
           renderer: renderer,
@@ -141,10 +169,47 @@ export default function GaussianViewer({
 
         setIsLoading(false);
 
-        // Animation loop - EXACT SHARP-ML LOOP
+        // Animation loop - EXACT SHARP-ML LOOP with WASD movement
         const animate = () => {
           if (disposed) return;
           animationFrameId = requestAnimationFrame(animate);
+          
+          // Handle WASD movement
+          if (keysPressed.size > 0) {
+            const forward = new THREE.Vector3();
+            const right = new THREE.Vector3();
+            const up = new THREE.Vector3(0, 1, 0);
+            
+            camera.getWorldDirection(forward);
+            right.crossVectors(forward, up).normalize();
+            
+            const moveVector = new THREE.Vector3();
+            
+            if (keysPressed.has('w')) {
+              moveVector.addScaledVector(forward, moveSpeed);
+            }
+            if (keysPressed.has('s')) {
+              moveVector.addScaledVector(forward, -moveSpeed);
+            }
+            if (keysPressed.has('a')) {
+              moveVector.addScaledVector(right, -moveSpeed);
+            }
+            if (keysPressed.has('d')) {
+              moveVector.addScaledVector(right, moveSpeed);
+            }
+            if (keysPressed.has(' ')) {
+              moveVector.addScaledVector(up, moveSpeed);
+            }
+            if (keysPressed.has('shift')) {
+              moveVector.addScaledVector(up, -moveSpeed);
+            }
+            
+            if (moveVector.length() > 0) {
+              camera.position.add(moveVector);
+              controls.target.add(moveVector);
+            }
+          }
+          
           controls.update();
           viewer.update();
           viewer.render();
@@ -162,6 +227,9 @@ export default function GaussianViewer({
         };
 
         window.addEventListener("resize", handleResize);
+
+        // Store cleanup function in viewerRef for later cleanup
+        viewerRef.current.cleanupKeyboard = cleanupKeyboard;
       } catch (err) {
         console.error("[GaussianViewer] Error in initGaussianSplatViewer:", err);
         throw err;
@@ -187,6 +255,11 @@ export default function GaussianViewer({
 
       if (controlsRef.current) {
         controlsRef.current.dispose();
+      }
+
+      // Cleanup keyboard listeners
+      if (viewerRef.current?.cleanupKeyboard) {
+        viewerRef.current.cleanupKeyboard();
       }
 
       viewerRef.current = null;
@@ -217,7 +290,7 @@ export default function GaussianViewer({
 
       {!isLoading && !error && (
         <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg px-3 py-2 text-gray-700 dark:text-gray-300 text-xs z-10 border border-gray-200 dark:border-gray-700 shadow-sm">
-          <p>Drag to rotate • Scroll to fly through</p>
+          <p>Drag to rotate • Scroll/WASD to fly • Space/Shift for up/down</p>
         </div>
       )}
     </div>
