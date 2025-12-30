@@ -49,7 +49,7 @@ export default function DemoSection({
         {/* 2D Photo Thumbnail */}
         <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.03]">
           <img
-            src={demoImageUrl}
+            src={demoImageUrl.replace(/ /g, '%20')}
             alt="Demo"
             className="w-full h-full object-cover"
           />
