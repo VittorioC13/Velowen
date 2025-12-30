@@ -23,6 +23,7 @@ export default function DemoSection({
 
   // Update image URL when prop changes
   useEffect(() => {
+    console.log('DemoSection: prop changed to', demoImageUrl);
     setCurrentImageUrl(demoImageUrl);
     setImageError(false);
   }, [demoImageUrl]);
