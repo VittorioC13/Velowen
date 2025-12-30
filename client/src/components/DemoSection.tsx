@@ -54,8 +54,9 @@ export default function DemoSection({
             alt="Demo"
             className="w-full h-full object-cover"
             style={{ imageRendering: 'auto' }}
-            onError={() => {
-              setCurrentImageUrl('/demo/yukino.jpg');
+            onError={(e) => {
+              console.error('Failed to load demo image:', currentImageUrl);
+              // Don't fallback - let the image error show so user knows there's an issue
             }}
           />
           
