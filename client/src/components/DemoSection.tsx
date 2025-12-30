@@ -58,6 +58,7 @@ export default function DemoSection({
         {/* 2D Photo Thumbnail */}
         <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.03]">
           <img
+            key={currentImageUrl}
             src={currentImageUrl}
             alt="Demo"
             className="w-full h-full object-cover"
@@ -73,11 +74,11 @@ export default function DemoSection({
             }}
           />
           {imageError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10 pointer-events-none">
               <div className="text-center text-gray-400 dark:text-gray-600">
                 <Upload className="w-8 h-8 mx-auto mb-2" />
                 <p className="text-xs">Image not found</p>
-                <p className="text-xs mt-1 text-gray-300">{currentImageUrl.split('/').pop()}</p>
+                <p className="text-xs mt-1 text-gray-300 break-all px-2">{currentImageUrl.split('/').pop()}</p>
               </div>
             </div>
           )}
