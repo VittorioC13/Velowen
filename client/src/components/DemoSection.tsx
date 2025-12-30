@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Play, Upload } from "lucide-react";
 import { useLocation } from "wouter";
@@ -20,6 +20,12 @@ export default function DemoSection({
   const [currentImageUrl, setCurrentImageUrl] = useState(demoImageUrl);
   const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update image URL when prop changes
+  useEffect(() => {
+    setCurrentImageUrl(demoImageUrl);
+    setImageError(false);
+  }, [demoImageUrl]);
 
   const handleImageClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
