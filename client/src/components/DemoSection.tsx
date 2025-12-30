@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { Play, Upload } from "lucide-react";
 import { useLocation } from "wouter";
@@ -17,7 +17,6 @@ export default function DemoSection({
   plyUrl,
 }: DemoSectionProps) {
   const [, setLocation] = useLocation();
-  const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageClick = useCallback((e: React.MouseEvent) => {
@@ -50,43 +49,10 @@ export default function DemoSection({
         {/* 2D Photo Thumbnail */}
         <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.03]">
           <img
-            key={demoImageUrl}
             src={demoImageUrl}
-            alt={`Demo ${demoImageUrl.split('/').pop()}`}
+            alt="Demo"
             className="w-full h-full object-cover"
-            style={{ imageRendering: 'auto' }}
-            onError={(e) => {
-              const img = e.currentTarget as HTMLImageElement;
-              const attemptedUrl = img.src;
-              console.error('Failed to load demo image:', demoImageUrl);
-              console.error('Attempted URL:', attemptedUrl);
-              
-              // Only retry once if it's the original URL (not already retried)
-              if (!attemptedUrl.includes('?retry=')) {
-                const retryUrl = `${demoImageUrl}?retry=${Date.now()}`;
-                console.log('Retrying with:', retryUrl);
-                img.src = retryUrl;
-              } else {
-                // Retry failed, show error
-                console.error('Retry also failed for:', demoImageUrl);
-                setImageError(true);
-              }
-            }}
-            onLoad={() => {
-              console.log('Successfully loaded demo image:', demoImageUrl);
-              setImageError(false);
-            }}
           />
-          {imageError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 z-10 pointer-events-none">
-              <div className="text-center text-gray-400 dark:text-gray-600">
-                <Upload className="w-8 h-8 mx-auto mb-2" />
-                <p className="text-xs">Image not found</p>
-                <p className="text-xs mt-1 text-gray-300 break-all px-2">{demoImageUrl.split('/').pop()}</p>
-              </div>
-            </div>
-          )}
-          
           {/* Upload button overlay - top right */}
           <button
             onClick={(e) => {
@@ -115,7 +81,6 @@ export default function DemoSection({
                   if (img) {
                     img.src = result;
                   }
-                  setImageError(false);
                 };
                 reader.readAsDataURL(file);
               }
