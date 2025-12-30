@@ -18,6 +18,7 @@ export default function DemoSection({
 }: DemoSectionProps) {
   const [, setLocation] = useLocation();
   const [currentImageUrl, setCurrentImageUrl] = useState(demoImageUrl);
+  const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageClick = useCallback((e: React.MouseEvent) => {
@@ -49,16 +50,28 @@ export default function DemoSection({
       >
         {/* 2D Photo Thumbnail */}
         <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.03]">
-          <img
-            src={currentImageUrl}
-            alt="Demo"
-            className="w-full h-full object-cover"
-            style={{ imageRendering: 'auto' }}
-            onError={(e) => {
-              console.error('Failed to load demo image:', currentImageUrl);
-              // Don't fallback - let the image error show so user knows there's an issue
-            }}
-          />
+          {!imageError ? (
+            <img
+              src={currentImageUrl}
+              alt="Demo"
+              className="w-full h-full object-cover"
+              style={{ imageRendering: 'auto' }}
+              onError={() => {
+                console.error('Failed to load demo image:', currentImageUrl);
+                setImageError(true);
+              }}
+              onLoad={() => {
+                setImageError(false);
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+              <div className="text-center text-gray-400 dark:text-gray-600">
+                <Upload className="w-8 h-8 mx-auto mb-2" />
+                <p className="text-xs">Image not found</p>
+              </div>
+            </div>
+          )}
           
           {/* Upload button overlay - top right */}
           <button
@@ -84,6 +97,7 @@ export default function DemoSection({
                 reader.onload = (event) => {
                   const result = event.target?.result as string;
                   setCurrentImageUrl(result);
+                  setImageError(false);
                 };
                 reader.readAsDataURL(file);
               }
