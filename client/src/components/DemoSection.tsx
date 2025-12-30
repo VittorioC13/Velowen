@@ -17,25 +17,17 @@ export default function DemoSection({
   plyUrl,
 }: DemoSectionProps) {
   const [, setLocation] = useLocation();
-  const [currentImageUrl, setCurrentImageUrl] = useState(demoImageUrl);
   const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Update image URL when prop changes
-  useEffect(() => {
-    console.log('DemoSection: prop changed to', demoImageUrl);
-    setCurrentImageUrl(demoImageUrl);
-    setImageError(false);
-  }, [demoImageUrl]);
 
   const handleImageClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('Demo panel clicked', { currentImageUrl, plyUrl });
+    console.log('Demo panel clicked', { demoImageUrl, plyUrl });
     
     // Store demo info for full-screen viewer
-    sessionStorage.setItem('demoImageUrl', currentImageUrl);
+    sessionStorage.setItem('demoImageUrl', demoImageUrl);
     sessionStorage.setItem('demoTrigger', Date.now().toString());
     if (plyUrl) {
       sessionStorage.setItem('demoPlyUrl', plyUrl);
@@ -43,7 +35,7 @@ export default function DemoSection({
     
     // Force hard navigation to trigger useEffect
     window.location.href = '/image-to-3d?demo=true&t=' + Date.now();
-  }, [currentImageUrl, plyUrl]);
+  }, [demoImageUrl, plyUrl]);
 
   return (
     <motion.div
@@ -58,18 +50,23 @@ export default function DemoSection({
         {/* 2D Photo Thumbnail */}
         <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.03]">
           <img
-            key={currentImageUrl}
-            src={currentImageUrl}
+            key={demoImageUrl}
+            src={demoImageUrl}
             alt="Demo"
             className="w-full h-full object-cover"
             style={{ imageRendering: 'auto' }}
             onError={(e) => {
-              console.error('Failed to load demo image:', currentImageUrl);
-              console.error('Image element:', e.currentTarget);
-              setImageError(true);
+              const img = e.currentTarget as HTMLImageElement;
+              console.error('Failed to load demo image:', demoImageUrl);
+              console.error('Attempted URL:', img.src);
+              console.error('Natural dimensions:', img.naturalWidth, img.naturalHeight);
+              // Try with cache buster
+              const retryUrl = `${demoImageUrl}?retry=${Date.now()}`;
+              console.log('Retrying with:', retryUrl);
+              img.src = retryUrl;
             }}
             onLoad={() => {
-              console.log('Successfully loaded demo image:', currentImageUrl);
+              console.log('Successfully loaded demo image:', demoImageUrl);
               setImageError(false);
             }}
           />
@@ -106,7 +103,11 @@ export default function DemoSection({
                 const reader = new FileReader();
                 reader.onload = (event) => {
                   const result = event.target?.result as string;
-                  setCurrentImageUrl(result);
+                  // Update the image src directly
+                  const img = document.querySelector(`img[alt="Demo"]`) as HTMLImageElement;
+                  if (img) {
+                    img.src = result;
+                  }
                   setImageError(false);
                 };
                 reader.readAsDataURL(file);
