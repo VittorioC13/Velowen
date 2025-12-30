@@ -66,14 +66,14 @@ export default function GaussianViewer({
 
         console.log("[GaussianViewer] Container size:", width, "x", height);
 
-        // Create renderer with WHITE background (like SHARP-ML for progressive reveal effect)
+        // Create renderer with BLACK background (like Marble for point cloud reveal effect)
         const renderer = new THREE.WebGLRenderer({
           antialias: true,
-          alpha: false, // Opaque background for white reveal effect
+          alpha: false,
         });
         renderer.setSize(width, height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(0xffffff, 1); // White background
+        renderer.setClearColor(0x000000, 1); // Black background like Marble
         container.appendChild(renderer.domElement);
         rendererRef.current = renderer;
 
@@ -148,43 +148,22 @@ export default function GaussianViewer({
 
         viewerRef.current = { viewer, camera, renderer, controls };
 
-        console.log("[GaussianViewer] Loading PLY from URL:", modelUrl);
-        console.log("[GaussianViewer] URL type:", modelUrl.startsWith('data:') ? 'data URL' : modelUrl.startsWith('blob:') ? 'blob URL' : 'HTTP URL');
-        
-        // Load the PLY file - EXACT SHARP-ML CALL
-        await viewer.addSplatScene(modelUrl, {
-          splatAlphaRemovalThreshold: 5,
-          showLoadingUI: false,
-          progressiveLoad: true,
-          onProgress: (progress: number) => {
-            const clampedProgress = Math.min(100, Math.round(progress));
-            console.log("[GaussianViewer] Load progress:", clampedProgress + "%");
-            setLoadProgress(clampedProgress);
-          },
-        });
-
-        console.log("[GaussianViewer] PLY loaded successfully!");
-
-        if (disposed) return;
-
-        setIsLoading(false);
-
-        // Animation loop - EXACT SHARP-ML LOOP with WASD movement
+        // Animation loop - Start IMMEDIATELY so we see point cloud as it loads (like Marble)
         const animate = () => {
           if (disposed) return;
           animationFrameId = requestAnimationFrame(animate);
-          
+
           // Handle WASD movement
           if (keysPressed.size > 0) {
             const forward = new THREE.Vector3();
             const right = new THREE.Vector3();
             const up = new THREE.Vector3(0, 1, 0);
-            
+
             camera.getWorldDirection(forward);
             right.crossVectors(forward, up).normalize();
-            
+
             const moveVector = new THREE.Vector3();
-            
+
             if (keysPressed.has('w')) {
               moveVector.addScaledVector(forward, moveSpeed);
             }
@@ -203,18 +182,42 @@ export default function GaussianViewer({
             if (keysPressed.has('shift')) {
               moveVector.addScaledVector(up, -moveSpeed);
             }
-            
+
             if (moveVector.length() > 0) {
               camera.position.add(moveVector);
               controls.target.add(moveVector);
             }
           }
-          
+
           controls.update();
           viewer.update();
           viewer.render();
         };
+
+        // Start animation loop BEFORE loading PLY - shows black scene immediately
         animate();
+
+        console.log("[GaussianViewer] Loading PLY from URL:", modelUrl);
+        console.log("[GaussianViewer] URL type:", modelUrl.startsWith('data:') ? 'data URL' : modelUrl.startsWith('blob:') ? 'blob URL' : 'HTTP URL');
+
+        // Load the PLY file - progressive loading shows points as they come in
+        await viewer.addSplatScene(modelUrl, {
+          splatAlphaRemovalThreshold: 5,
+          showLoadingUI: false,
+          progressiveLoad: true,
+          onProgress: (progress: number) => {
+            const clampedProgress = Math.min(100, Math.round(progress));
+            console.log("[GaussianViewer] Load progress:", clampedProgress + "%");
+            setLoadProgress(clampedProgress);
+          },
+        });
+
+        console.log("[GaussianViewer] PLY loaded successfully!");
+
+        if (disposed) return;
+
+        // Loading complete
+        setIsLoading(false);
 
         // Handle resize
         const handleResize = () => {
@@ -269,22 +272,22 @@ export default function GaussianViewer({
   }, [modelUrl, modelType]);
 
   return (
-    <div className="relative w-full h-[60vh] bg-white rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+    <div className="relative w-full h-[60vh] bg-black rounded-lg overflow-hidden border border-gray-800">
       <div ref={containerRef} className="absolute inset-0" />
 
+      {/* Subtle corner loading indicator - doesn't block scene */}
       {isLoading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-10">
-          <div className="w-12 h-12 border-4 border-gray-900 dark:border-gray-100 border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-lg text-gray-900 dark:text-gray-100">Loading 3D Scene</p>
-          <p className="text-sm mt-1 text-gray-600 dark:text-gray-400">{loadProgress}%</p>
+        <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-2 bg-black/60 backdrop-blur-sm rounded-lg z-10">
+          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <span className="text-sm text-white/80">{loadProgress}%</span>
         </div>
       )}
 
       {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-4 text-center z-10">
-          <p className="text-lg font-semibold mb-2 text-red-600 dark:text-red-400">Failed to load 3D scene</p>
-          <p className="text-sm text-gray-700 dark:text-gray-300">{error}</p>
-          <p className="text-xs mt-2 text-gray-500 dark:text-gray-400">Check browser console for details</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 p-4 text-center z-10">
+          <p className="text-lg font-semibold mb-2 text-red-400">Failed to load 3D scene</p>
+          <p className="text-sm text-gray-300">{error}</p>
+          <p className="text-xs mt-2 text-gray-500">Check browser console for details</p>
         </div>
       )}
     </div>
