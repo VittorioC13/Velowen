@@ -15,7 +15,7 @@ export interface DemoItem {
 
 export const DEMO_ITEMS: DemoItem[] = [
   {
-    imageUrl: "/demo/yukino.jpg",
+    imageUrl: "/demo/yukino 1.jpg",
     plyUrl: "", // Will auto-generate on click
   },
   {
