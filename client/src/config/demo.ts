@@ -15,35 +15,35 @@ export interface DemoItem {
 
 export const DEMO_ITEMS: DemoItem[] = [
   {
-    imageUrl: "/demo/yukino 1.jpg",
+    imageUrl: "/demo/yukino 1.jpg.jpg",
     plyUrl: "", // Will auto-generate on click
   },
   {
-    imageUrl: "/demo/yukino 2.jpg",
+    imageUrl: "/demo/yukino 2.jpg.jpg",
     plyUrl: "", // Will auto-generate on click
   },
   {
-    imageUrl: "/demo/yukino 3.jpg",
+    imageUrl: "/demo/yukino 3.jpg.jpg",
     plyUrl: "", // Will auto-generate on click
   },
   {
-    imageUrl: "/demo/yukino 4.jpg",
+    imageUrl: "/demo/yukino 4.jpg.jpg",
     plyUrl: "", // Will auto-generate on click
   },
   {
-    imageUrl: "/demo/yukino 5.jpg",
+    imageUrl: "/demo/yukino 5.jpg.jpg",
     plyUrl: "", // Will auto-generate on click
   },
   {
-    imageUrl: "/demo/yukino 6.jpg",
+    imageUrl: "/demo/yukino 6.jpg.jpg",
     plyUrl: "", // Will auto-generate on click
   },
   {
-    imageUrl: "/demo/yukino 7.jpg",
+    imageUrl: "/demo/yukino 7.jpg.jpg",
     plyUrl: "", // Will auto-generate on click
   },
   {
-    imageUrl: "/demo/yukino 8.jpg",
+    imageUrl: "/demo/yukino 8.jpg.jpg",
     plyUrl: "", // Will auto-generate on click
   },
 ];
