@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { Play, Upload } from "lucide-react";
 import { useLocation } from "wouter";
@@ -75,7 +75,7 @@ export default function DemoSection({
               <div className="text-center text-gray-400 dark:text-gray-600">
                 <Upload className="w-8 h-8 mx-auto mb-2" />
                 <p className="text-xs">Image not found</p>
-                <p className="text-xs mt-1 text-gray-300 break-all px-2">{currentImageUrl.split('/').pop()}</p>
+                <p className="text-xs mt-1 text-gray-300 break-all px-2">{demoImageUrl.split('/').pop()}</p>
               </div>
             </div>
           )}
