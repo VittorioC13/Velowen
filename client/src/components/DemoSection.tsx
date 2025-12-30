@@ -52,18 +52,25 @@ export default function DemoSection({
           <img
             key={demoImageUrl}
             src={demoImageUrl}
-            alt="Demo"
+            alt={`Demo ${demoImageUrl.split('/').pop()}`}
             className="w-full h-full object-cover"
             style={{ imageRendering: 'auto' }}
             onError={(e) => {
               const img = e.currentTarget as HTMLImageElement;
+              const attemptedUrl = img.src;
               console.error('Failed to load demo image:', demoImageUrl);
-              console.error('Attempted URL:', img.src);
-              console.error('Natural dimensions:', img.naturalWidth, img.naturalHeight);
-              // Try with cache buster
-              const retryUrl = `${demoImageUrl}?retry=${Date.now()}`;
-              console.log('Retrying with:', retryUrl);
-              img.src = retryUrl;
+              console.error('Attempted URL:', attemptedUrl);
+              
+              // Only retry once if it's the original URL (not already retried)
+              if (!attemptedUrl.includes('?retry=')) {
+                const retryUrl = `${demoImageUrl}?retry=${Date.now()}`;
+                console.log('Retrying with:', retryUrl);
+                img.src = retryUrl;
+              } else {
+                // Retry failed, show error
+                console.error('Retry also failed for:', demoImageUrl);
+                setImageError(true);
+              }
             }}
             onLoad={() => {
               console.log('Successfully loaded demo image:', demoImageUrl);
