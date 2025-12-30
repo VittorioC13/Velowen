@@ -18,5 +18,9 @@ export const DEMO_ITEMS: DemoItem[] = [
     imageUrl: "/demo/yukino.jpg",
     plyUrl: "", // Will auto-generate on click
   },
+  {
+    imageUrl: "/demo/yukino 2.jpg",
+    plyUrl: "", // Will auto-generate on click
+  },
 ];
 
