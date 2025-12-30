@@ -15,11 +15,11 @@ export interface DemoItem {
 
 export const DEMO_ITEMS: DemoItem[] = [
   {
-    imageUrl: "/demo/yukino 1.jpg",
+    imageUrl: "/demo/yukino1.jpg",
     plyUrl: "", // Will auto-generate on click
   },
   {
-    imageUrl: "/demo/yukino 2.jpg",
+    imageUrl: "/demo/yukino2.jpg",
     plyUrl: "", // Will auto-generate on click
   },
 ];

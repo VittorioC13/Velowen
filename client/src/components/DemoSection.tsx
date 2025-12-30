@@ -50,16 +50,9 @@ export default function DemoSection({
         <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-[1.03]">
           <img
             key={demoImageUrl}
-            src={demoImageUrl.replace(/ /g, '%20')}
+            src={demoImageUrl}
             alt="Demo"
             className="w-full h-full object-cover"
-            onError={(e) => {
-              console.error('Image failed to load:', demoImageUrl);
-              console.error('Encoded URL:', demoImageUrl.replace(/ /g, '%20'));
-            }}
-            onLoad={() => {
-              console.log('Image loaded:', demoImageUrl);
-            }}
           />
           {/* Upload button overlay - top right */}
           <button
