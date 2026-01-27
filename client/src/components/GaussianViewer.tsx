@@ -67,8 +67,7 @@ export default function GaussianViewer({
 
         console.log("[GaussianViewer] Container size:", width, "x", height);
 
-        // Create renderer with BLACK background (like Marble for point cloud reveal effect)
-        // UPGRADED: Better quality settings for anime rendering
+        // Create renderer - IMMERSIVE MODE (like Marble)
         const renderer = new THREE.WebGLRenderer({
           antialias: true,
           alpha: false,
@@ -77,28 +76,34 @@ export default function GaussianViewer({
         });
         renderer.setSize(width, height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(0x000000, 1); // Black background like Marble
+
+        // IMMERSIVE BACKGROUND - subtle gradient for depth perception
+        renderer.setClearColor(0x1a1a2e, 1); // Dark blue-grey (not pure black)
 
         // Enable additional quality features
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.0;
+        renderer.toneMappingExposure = 1.2; // Slightly brighter for immersion
         renderer.shadowMap.enabled = false; // 3DGS doesn't need shadows
         container.appendChild(renderer.domElement);
         rendererRef.current = renderer;
 
-        // Create camera
-        const camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 500);
-        camera.position.set(0, 0, -3);
-        camera.up.set(0, -1, 0);
-        camera.lookAt(0, 0, 0);
+        // Create camera - IMMERSIVE MODE (like Marble)
+        // Start INSIDE the world, not looking at it from outside
+        const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000);
+        camera.position.set(0, 0, 0); // Start at origin (inside the world)
+        camera.up.set(0, 1, 0); // Standard up vector
+        camera.lookAt(0, 0, 1); // Look forward into the scene
 
-        // Create controls
+        // Create controls - IMMERSIVE FLY MODE
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.dampingFactor = 0.1;
-        controls.rotateSpeed = 0.8;
-        controls.enableZoom = false;
-        controls.target.set(0, 0, 0);
+        controls.dampingFactor = 0.05; // Smoother
+        controls.rotateSpeed = 0.5; // Slower, more deliberate
+        controls.enableZoom = false; // Use WASD/wheel for movement
+        controls.enablePan = false; // No panning, use WASD
+        controls.target.set(0, 0, 1); // Look forward, not at center
+        controls.minDistance = 0.1; // Allow getting very close
+        controls.maxDistance = 100; // Allow moving far away
         controlsRef.current = controls;
 
         // Custom wheel handler for flying through
@@ -170,14 +175,14 @@ export default function GaussianViewer({
           if (disposed) return;
           animationFrameId = requestAnimationFrame(animate);
 
-          // Handle WASD movement
+          // Handle WASD movement - IMMERSIVE FLY MODE
           if (keysPressed.size > 0) {
             const forward = new THREE.Vector3();
             const right = new THREE.Vector3();
+            const up = new THREE.Vector3(0, 1, 0); // World up
 
             camera.getWorldDirection(forward);
-            // Calculate right vector (swap order because camera.up is inverted)
-            right.crossVectors(camera.up, forward).normalize();
+            right.crossVectors(forward, up).normalize(); // Right vector
 
             const moveVector = new THREE.Vector3();
 
@@ -188,16 +193,16 @@ export default function GaussianViewer({
               moveVector.addScaledVector(forward, -moveSpeed);
             }
             if (keysPressed.has('a')) {
-              moveVector.addScaledVector(right, -moveSpeed);  // Move camera LEFT
+              moveVector.addScaledVector(right, -moveSpeed);
             }
             if (keysPressed.has('d')) {
-              moveVector.addScaledVector(right, moveSpeed);  // Move camera RIGHT
+              moveVector.addScaledVector(right, moveSpeed);
             }
             if (keysPressed.has(' ')) {
-              moveVector.addScaledVector(up, moveSpeed);
+              moveVector.addScaledVector(up, moveSpeed); // Move up
             }
             if (keysPressed.has('shift')) {
-              moveVector.addScaledVector(up, -moveSpeed);
+              moveVector.addScaledVector(up, -moveSpeed); // Move down
             }
 
             if (moveVector.length() > 0) {
@@ -308,15 +313,10 @@ export default function GaussianViewer({
   }, [modelUrl, modelType]);
 
   return (
-    <div className="relative w-full h-[60vh] bg-black rounded-lg overflow-hidden border border-gray-800">
+    <div className="relative w-full h-[60vh] bg-gray-900 rounded-lg overflow-hidden border border-gray-800">
       <div
         ref={containerRef}
-        className="absolute inset-0 transition-opacity duration-300"
-        style={{
-          opacity: renderQuality,
-          // Apply a filter for the point cloud effect during early loading
-          filter: loadProgress < 50 ? `contrast(${0.8 + renderQuality * 0.2})` : 'none'
-        }}
+        className="absolute inset-0"
       />
 
       {/* Subtle corner loading indicator - doesn't block scene */}
