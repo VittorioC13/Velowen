@@ -6,3 +6,16 @@ vite.config.ts.*
 *.tar.gz
 .env
 .env.local
+
+# Generated outputs
+client/public/outputs/
+*.ply
+*.spz
+
+# Test files
+test-*.js
+test-*.html
+worldlabs-test-result.json
+
+# Large PDFs
+*.pdf
