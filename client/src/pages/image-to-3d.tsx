@@ -8,6 +8,8 @@ import {
   Upload,
   Wand2,
   Box,
+  Share2,
+  Download,
 } from "lucide-react";
 import ImageUpload from "../components/ImageUpload";
 import PromptInput from "../components/PromptInput";
@@ -16,7 +18,7 @@ import ProcessingStatus from "../components/ProcessingStatus";
 import PixelatedImage from "../components/PixelatedImage";
 import DemoSection from "../components/DemoSection";
 import VoiceChat from "../components/VoiceChat";
-import { DEMO_ITEMS } from "../config/demo";
+import { DEMO_ITEMS, DEMO_CATEGORIES, type DemoCategory } from "../config/demo";
 
 type AppState = "upload" | "processing" | "viewing" | "error";
 type ProcessingStage = "uploading" | "processing" | "generating" | "complete" | "error";
@@ -26,6 +28,8 @@ export default function ImageTo3DPage() {
   const [location, setLocation] = useLocation();
   const [appState, setAppState] = useState<AppState>("upload");
   const [activeTab, setActiveTab] = useState<"upload" | "demo">("demo");
+  const [selectedCategory, setSelectedCategory] = useState<DemoCategory>("all");
+  const [selectedModel, setSelectedModel] = useState<"sharp-ml" | "world-labs">("sharp-ml");
   
   const handleDemoImageGenerate = useCallback(async (imageUrl: string) => {
     setAppState("processing");
@@ -72,7 +76,7 @@ export default function ImageTo3DPage() {
       const response = await fetch("/api/generate-3d", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64 }),
+        body: JSON.stringify({ image: base64, model: selectedModel }),
       });
       
       clearInterval(progressInterval);
@@ -200,7 +204,7 @@ export default function ImageTo3DPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ image: base64 }),
+        body: JSON.stringify({ image: base64, model: selectedModel }),
       });
 
       clearInterval(progressInterval);
@@ -286,6 +290,24 @@ export default function ImageTo3DPage() {
     setCurrentSceneName(null);
   }, []);
 
+  const handleShare = useCallback(() => {
+    const sceneName = currentSceneName || "anime world";
+    const shareText = `I just created this interactive 3D ${sceneName} with @Velowen_art! 🎌✨\n\nTransform your images into explorable 3D worlds:\n`;
+    const shareUrl = window.location.origin;
+
+    // Create Twitter share URL
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+
+    // Open in new window
+    window.open(twitterUrl, '_blank', 'width=550,height=420');
+  }, [currentSceneName]);
+
+  const handleDownload = useCallback(() => {
+    // Trigger screenshot download from the viewer
+    // We'll need to add a ref to GaussianViewer to call its screenshot method
+    alert('Screenshot feature coming soon! For now, use your browser\'s screenshot tool.');
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
       {/* Header */}
@@ -367,6 +389,51 @@ export default function ImageTo3DPage() {
                   </div>
                 </motion.div>
 
+                {/* Model Selection */}
+                {activeTab === "upload" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="mb-6"
+                  >
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border border-blue-200/50 dark:border-blue-800/50">
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                          Generation Model
+                        </h3>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {selectedModel === "sharp-ml"
+                            ? "Apple SHARP-ML • ~35s • Open source"
+                            : "World Labs Marble • ~37s • Higher quality"}
+                        </p>
+                      </div>
+                      <div className="inline-flex p-1 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                        <button
+                          onClick={() => setSelectedModel("sharp-ml")}
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                            selectedModel === "sharp-ml"
+                              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm"
+                              : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                          }`}
+                        >
+                          🍎 SHARP-ML
+                        </button>
+                        <button
+                          onClick={() => setSelectedModel("world-labs")}
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                            selectedModel === "world-labs"
+                              ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-sm"
+                              : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                          }`}
+                        >
+                          🌍 World Labs
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Demo Section / Upload Zone */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -395,16 +462,59 @@ export default function ImageTo3DPage() {
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
                       >
+                        {/* Category Filter */}
+                        <div className="mb-6 flex flex-wrap gap-2">
+                          {DEMO_CATEGORIES.map((category) => {
+                            const itemCount = selectedCategory === "all"
+                              ? DEMO_ITEMS.length
+                              : DEMO_ITEMS.filter(item => item.category === category.id).length;
+
+                            return (
+                              <button
+                                key={category.id}
+                                onClick={() => setSelectedCategory(category.id)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                                  selectedCategory === category.id
+                                    ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-sm"
+                                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border border-gray-200 dark:border-gray-700"
+                                }`}
+                                title={category.description}
+                              >
+                                <span>{category.emoji}</span>
+                                <span>{category.label}</span>
+                                {category.id !== "all" && itemCount > 0 && (
+                                  <span className="text-xs opacity-60">({itemCount})</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+
                         {/* Demo Grid - 4 columns on desktop, 2 on tablet, 1 on mobile */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                          {DEMO_ITEMS.map((demo, index) => (
+                          {DEMO_ITEMS.filter(
+                            (demo) => selectedCategory === "all" || demo.category === selectedCategory
+                          ).map((demo, index) => (
                             <DemoSection
                               key={index}
                               demoImageUrl={demo.imageUrl}
                               plyUrl={demo.plyUrl}
+                              title={demo.title}
+                              description={demo.description}
                             />
                           ))}
                         </div>
+
+                        {/* Empty state */}
+                        {DEMO_ITEMS.filter(
+                          (demo) => selectedCategory === "all" || demo.category === selectedCategory
+                        ).length === 0 && (
+                          <div className="text-center py-12">
+                            <p className="text-gray-500 dark:text-gray-400">
+                              No examples in this category yet. Check back soon!
+                            </p>
+                          </div>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -481,17 +591,40 @@ export default function ImageTo3DPage() {
                 className="pt-8"
               >
                 <div className="mb-6">
-                  <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-                    <button
-                      onClick={handleReset}
-                      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0"
-                      aria-label="Back to home"
-                    >
-                      <ArrowLeft className="w-4 h-4" strokeWidth={2} />
-                    </button>
-                    <h2 className="text-2xl font-semibold truncate">
-                      {currentSceneName || "Your 3D Scene"}
-                    </h2>
+                  <div className="flex items-center justify-between gap-4">
+                    {/* Left: Back button + Title */}
+                    <div className="flex items-center gap-2 min-w-0 overflow-hidden flex-1">
+                      <button
+                        onClick={handleReset}
+                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0"
+                        aria-label="Back to home"
+                      >
+                        <ArrowLeft className="w-4 h-4" strokeWidth={2} />
+                      </button>
+                      <h2 className="text-2xl font-semibold truncate">
+                        {currentSceneName || "Your 3D Scene"}
+                      </h2>
+                    </div>
+
+                    {/* Right: Action buttons */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={handleDownload}
+                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        aria-label="Download screenshot"
+                        title="Download screenshot"
+                      >
+                        <Download className="w-4 h-4" strokeWidth={2} />
+                      </button>
+                      <button
+                        onClick={handleShare}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:opacity-90 transition-opacity"
+                        aria-label="Share on Twitter"
+                      >
+                        <Share2 className="w-4 h-4" strokeWidth={2} />
+                        <span className="hidden sm:inline">Share</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
