@@ -91,7 +91,7 @@ export default function GaussianViewer({
         // Start INSIDE the world, not looking at it from outside
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000);
         camera.position.set(0, 0, 0); // Start at origin (inside the world)
-        camera.up.set(0, 1, 0); // Standard up vector
+        camera.up.set(0, -1, 0); // Inverted Y axis (3DGS convention)
         camera.lookAt(0, 0, 1); // Look forward into the scene
 
         // Create controls - IMMERSIVE FLY MODE
@@ -126,7 +126,7 @@ export default function GaussianViewer({
         const handleKeyDown = (e: KeyboardEvent) => {
           // Only handle if canvas is focused or if it's a movement key
           const key = e.key.toLowerCase();
-          if (['w', 'a', 's', 'd', ' ', 'shift'].includes(key)) {
+          if (['w', 'a', 's', 'd', ' '].includes(key)) {
             keysPressed.add(key);
             e.preventDefault();
           }
@@ -179,7 +179,7 @@ export default function GaussianViewer({
           if (keysPressed.size > 0) {
             const forward = new THREE.Vector3();
             const right = new THREE.Vector3();
-            const up = new THREE.Vector3(0, 1, 0); // World up
+            const up = new THREE.Vector3(0, -1, 0); // Match camera.up for correct orientation
 
             camera.getWorldDirection(forward);
             right.crossVectors(forward, up).normalize(); // Right vector
@@ -199,10 +199,7 @@ export default function GaussianViewer({
               moveVector.addScaledVector(right, moveSpeed);
             }
             if (keysPressed.has(' ')) {
-              moveVector.addScaledVector(up, moveSpeed); // Move up
-            }
-            if (keysPressed.has('shift')) {
-              moveVector.addScaledVector(up, -moveSpeed); // Move down
+              moveVector.addScaledVector(up, -moveSpeed); // Move up (inverted Y)
             }
 
             if (moveVector.length() > 0) {
