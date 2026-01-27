@@ -18,6 +18,7 @@ export default function GaussianViewer({
   const [isLoading, setIsLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [renderQuality, setRenderQuality] = useState(0.05); // Start at 5% quality for dramatic reveal
 
   useEffect(() => {
     if (!containerRef.current || !modelUrl) return;
@@ -67,13 +68,21 @@ export default function GaussianViewer({
         console.log("[GaussianViewer] Container size:", width, "x", height);
 
         // Create renderer with BLACK background (like Marble for point cloud reveal effect)
+        // UPGRADED: Better quality settings for anime rendering
         const renderer = new THREE.WebGLRenderer({
           antialias: true,
           alpha: false,
+          logarithmicDepthBuffer: true,  // Better depth precision
+          powerPreference: "high-performance",  // Use dedicated GPU
         });
         renderer.setSize(width, height);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setClearColor(0x000000, 1); // Black background like Marble
+
+        // Enable additional quality features
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.0;
+        renderer.shadowMap.enabled = false; // 3DGS doesn't need shadows
         container.appendChild(renderer.domElement);
         rendererRef.current = renderer;
 
@@ -133,7 +142,7 @@ export default function GaussianViewer({
           window.removeEventListener("keyup", handleKeyUp);
         };
 
-        // Create viewer - EXACT SHARP-ML CONFIGURATION
+        // Create viewer - UPGRADED CONFIGURATION for better anime quality
         const viewer = new GaussianSplats3D.Viewer({
           renderer: renderer,
           camera: camera,
@@ -142,8 +151,16 @@ export default function GaussianViewer({
           sharedMemoryForWorkers: false,
           dynamicScene: false,
           sceneRevealMode: GaussianSplats3D.SceneRevealMode.Gradual,
-          antialiased: true,
+
+          // QUALITY UPGRADES (inspired by Mip-Splatting concepts)
+          antialiased: true,  // Enable built-in antialiasing
           focalAdjustment: 1.0,
+          sphericalHarmonicsDegree: 2,  // Better lighting (0-3, higher = more accurate)
+          enableOptionalEffects: true,  // Enable advanced rendering effects
+
+          // Performance vs Quality trade-off (adjust if needed)
+          halfPrecisionCovariancesOnGPU: false,  // Full precision = better quality, more VRAM
+          devicePixelRatio: Math.min(window.devicePixelRatio, 2),  // Sharp on retina, balanced
         });
 
         viewerRef.current = { viewer, camera, renderer, controls };
@@ -157,10 +174,10 @@ export default function GaussianViewer({
           if (keysPressed.size > 0) {
             const forward = new THREE.Vector3();
             const right = new THREE.Vector3();
-            const up = new THREE.Vector3(0, 1, 0);
 
             camera.getWorldDirection(forward);
-            right.crossVectors(forward, up).normalize();
+            // Calculate right vector (swap order because camera.up is inverted)
+            right.crossVectors(camera.up, forward).normalize();
 
             const moveVector = new THREE.Vector3();
 
@@ -171,10 +188,10 @@ export default function GaussianViewer({
               moveVector.addScaledVector(forward, -moveSpeed);
             }
             if (keysPressed.has('a')) {
-              moveVector.addScaledVector(right, -moveSpeed);
+              moveVector.addScaledVector(right, -moveSpeed);  // Move camera LEFT
             }
             if (keysPressed.has('d')) {
-              moveVector.addScaledVector(right, moveSpeed);
+              moveVector.addScaledVector(right, moveSpeed);  // Move camera RIGHT
             }
             if (keysPressed.has(' ')) {
               moveVector.addScaledVector(up, moveSpeed);
@@ -201,14 +218,31 @@ export default function GaussianViewer({
         console.log("[GaussianViewer] URL type:", modelUrl.startsWith('data:') ? 'data URL' : modelUrl.startsWith('blob:') ? 'blob URL' : 'HTTP URL');
 
         // Load the PLY file - progressive loading shows points as they come in
+        // UPGRADED: Better quality settings for anime PLY files
         await viewer.addSplatScene(modelUrl, {
-          splatAlphaRemovalThreshold: 5,
+          splatAlphaRemovalThreshold: 5,  // Remove transparent splats (default: 5)
           showLoadingUI: false,
           progressiveLoad: true,
+
+          // QUALITY IMPROVEMENTS
+          rotation: [0, 0, 0, 1],  // No rotation (identity quaternion)
+          position: [0, 0, 0],     // Centered
+          scale: [1, 1, 1],        // No scaling
+
+          // Anime-specific optimizations
+          sphericalHarmonicsDegree: 2,  // Match viewer setting for consistent lighting
+
           onProgress: (progress: number) => {
             const clampedProgress = Math.min(100, Math.round(progress));
             console.log("[GaussianViewer] Load progress:", clampedProgress + "%");
             setLoadProgress(clampedProgress);
+
+            // Dramatic reveal: Start sparse (5%), gradually increase to full (100%)
+            // Use easing function for smooth transition
+            const normalizedProgress = clampedProgress / 100;
+            const easedProgress = normalizedProgress * normalizedProgress; // Quadratic easing
+            const quality = 0.05 + (0.95 * easedProgress); // 5% → 100%
+            setRenderQuality(quality);
           },
         });
 
@@ -216,7 +250,9 @@ export default function GaussianViewer({
 
         if (disposed) return;
 
-        // Loading complete
+        // Loading complete - ensure full quality
+        setRenderQuality(1.0);
+        setLoadProgress(100);
         setIsLoading(false);
 
         // Handle resize
@@ -273,13 +309,30 @@ export default function GaussianViewer({
 
   return (
     <div className="relative w-full h-[60vh] bg-black rounded-lg overflow-hidden border border-gray-800">
-      <div ref={containerRef} className="absolute inset-0" />
+      <div
+        ref={containerRef}
+        className="absolute inset-0 transition-opacity duration-300"
+        style={{
+          opacity: renderQuality,
+          // Apply a filter for the point cloud effect during early loading
+          filter: loadProgress < 50 ? `contrast(${0.8 + renderQuality * 0.2})` : 'none'
+        }}
+      />
 
       {/* Subtle corner loading indicator - doesn't block scene */}
       {isLoading && (
-        <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-2 bg-black/60 backdrop-blur-sm rounded-lg z-10">
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          <span className="text-sm text-white/80">{loadProgress}%</span>
+        <div className="absolute bottom-4 left-4 flex flex-col gap-2 px-3 py-2 bg-black/60 backdrop-blur-sm rounded-lg z-10">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <span className="text-sm text-white/80">{loadProgress}%</span>
+          </div>
+          <div className="text-xs text-white/60">
+            {loadProgress < 30
+              ? "Building point cloud..."
+              : loadProgress < 70
+              ? "Filling details..."
+              : "Finalizing..."}
+          </div>
         </div>
       )}
 

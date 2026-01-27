@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPZ Viewer Test - World Labs vs SHARP-ML</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        .viewer-section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .viewer-section h2 {
+            margin-top: 0;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .viewer-canvas {
+            width: 100%;
+            height: 500px;
+            background: #000;
+            border-radius: 8px;
+            position: relative;
+        }
+        .info {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #888;
+        }
+        .info strong {
+            color: #fff;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        button {
+            padding: 10px 20px;
+            background: #3b82f6;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 SPZ Format Test: World Labs vs SHARP-ML</h1>
+
+    <div class="container">
+        <!-- World Labs SPZ -->
+        <div class="viewer-section">
+            <h2>🌍 World Labs API (SPZ - 100k)</h2>
+            <div class="viewer-canvas" id="worldlabs-viewer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>Loading World Labs SPZ...</div>
+                </div>
+            </div>
+            <div class="info">
+                <strong>Format:</strong> SPZ (compressed)<br>
+                <strong>Resolution:</strong> 100k splats<br>
+                <strong>Generation Time:</strong> 37.4s (fast model)<br>
+                <strong>File Size:</strong> ~10x smaller than PLY<br>
+                <button onclick="window.open('https://marble.worldlabs.ai/world/bd1f514f-1f65-4a22-acde-0256ac9d3c34')">Open in World Labs Viewer</button>
+            </div>
+        </div>
+
+        <!-- SHARP-ML PLY (placeholder - add your URL) -->
+        <div class="viewer-section">
+            <h2>🍎 SHARP-ML (PLY)</h2>
+            <div class="viewer-canvas" id="sharpml-viewer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>Generate a SHARP-ML scene first</div>
+                </div>
+            </div>
+            <div class="info">
+                <strong>Format:</strong> PLY (uncompressed)<br>
+                <strong>Resolution:</strong> Variable<br>
+                <strong>Generation Time:</strong> ~35s (A10G)<br>
+                <strong>File Size:</strong> 10-50MB+<br>
+                <button onclick="alert('Upload an image via Velowen to generate SHARP-ML scene')">Generate Scene</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.7/build/gaussian-splats-3d.module.js';
+
+        // World Labs SPZ URL (from our test)
+        const worldLabsUrl = 'https://cdn.marble.worldlabs.ai/bd1f514f-1f65-4a22-acde-0256ac9d3c34/289b1379-eb9f-46b9-bcf4-ee7524d975da_sand_100k.spz';
+
+        // Initialize World Labs viewer
+        async function initWorldLabsViewer() {
+            try {
+                const viewer = new GaussianSplats3D.Viewer({
+                    cameraUp: [0, -1, 0],
+                    initialCameraPosition: [0, 1, -5],
+                    initialCameraLookAt: [0, 0, 0],
+                    rootElement: document.getElementById('worldlabs-viewer'),
+                    sharedMemoryForWorkers: false,
+                });
+
+                await viewer.addSplatScene(worldLabsUrl, {
+                    showLoadingUI: true,
+                    progressiveLoad: false, // SPZ doesn't support progressive loading
+                });
+
+                viewer.start();
+
+                // Remove loading indicator
+                document.querySelector('#worldlabs-viewer .loading').style.display = 'none';
+                console.log('✅ World Labs SPZ loaded successfully!');
+            } catch (error) {
+                console.error('❌ Failed to load World Labs SPZ:', error);
+                document.querySelector('#worldlabs-viewer .loading').innerHTML =
+                    `<div style="color: #ef4444;">Failed to load: ${error.message}</div>`;
+            }
+        }
+
+        // Initialize on load
+        initWorldLabsViewer();
+    </script>
+</body>
+</html>

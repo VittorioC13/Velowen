@@ -1,34 +1,49 @@
 /**
  * Demo configuration
- * 
+ *
  * To set up the demo:
- * 1. Place your demo image in public/demo/yukino.jpg (or update the path below)
- * 2. Generate the PLY file using the generate-demo-ply script
- * 3. Update the plyUrl below with the generated PLY URL
+ * 1. Place your demo image in public/demo/ folder
+ * 2. Generate the PLY file using the generate-demo-ply script (optional)
+ * 3. Update the plyUrl below with the generated PLY URL (optional - will auto-generate on click)
  */
 
 export interface DemoItem {
   imageUrl: string;
   plyUrl?: string;
-  title?: string;
 }
 
 export const DEMO_ITEMS: DemoItem[] = [
   {
     imageUrl: "/demo/yukino1.jpg",
-    plyUrl: "", // Will auto-generate on click
+    plyUrl: "",
   },
   {
     imageUrl: "/demo/yukino2.jpg",
-    plyUrl: "", // Will auto-generate on click
+    plyUrl: "",
   },
   {
     imageUrl: "/demo/yukino3.jpg",
-    plyUrl: "", // Will auto-generate on click
+    plyUrl: "",
   },
   {
     imageUrl: "/demo/yukino4.jpg",
-    plyUrl: "", // Will auto-generate on click
+    plyUrl: "",
+  },
+  {
+    imageUrl: "/demo/yukino5.jpg",
+    plyUrl: "",
+  },
+  {
+    imageUrl: "/demo/yukino6.jpg",
+    plyUrl: "",
+  },
+  {
+    imageUrl: "/demo/yukino7.jpg",
+    plyUrl: "",
+  },
+  {
+    imageUrl: "/demo/yukino8.jpg",
+    plyUrl: "",
   },
 ];
 

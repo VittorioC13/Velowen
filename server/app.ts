@@ -21,8 +21,9 @@ export function log(message: string, source = "express") {
 }
 
 export const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Increase limit for large base64 images (4.5MB image = ~6MB base64)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -76,8 +77,8 @@ export default async function runApp(
   const port = 5000;
   server.listen({
     port,
-    host: "0.0.0.0",
-    reusePort: true,
+    host: "localhost",  // Changed from 0.0.0.0 for Windows compatibility
+    // reusePort: true,  // Removed - not supported on Windows
   }, () => {
     log(`serving on port ${port}`);
   });

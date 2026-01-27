@@ -18,7 +18,7 @@ import ProcessingStatus from "../components/ProcessingStatus";
 import PixelatedImage from "../components/PixelatedImage";
 import DemoSection from "../components/DemoSection";
 import VoiceChat from "../components/VoiceChat";
-import { DEMO_ITEMS, DEMO_CATEGORIES, type DemoCategory } from "../config/demo";
+import { DEMO_ITEMS } from "../config/demo";
 
 type AppState = "upload" | "processing" | "viewing" | "error";
 type ProcessingStage = "uploading" | "processing" | "generating" | "complete" | "error";
@@ -28,7 +28,6 @@ export default function ImageTo3DPage() {
   const [location, setLocation] = useLocation();
   const [appState, setAppState] = useState<AppState>("upload");
   const [activeTab, setActiveTab] = useState<"upload" | "demo">("demo");
-  const [selectedCategory, setSelectedCategory] = useState<DemoCategory>("all");
   const [selectedModel, setSelectedModel] = useState<"sharp-ml" | "world-labs">("sharp-ml");
   
   const handleDemoImageGenerate = useCallback(async (imageUrl: string) => {
@@ -417,7 +416,7 @@ export default function ImageTo3DPage() {
                               : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                           }`}
                         >
-                          🍎 SHARP-ML
+                          SHARP-ML
                         </button>
                         <button
                           onClick={() => setSelectedModel("world-labs")}
@@ -427,7 +426,7 @@ export default function ImageTo3DPage() {
                               : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                           }`}
                         >
-                          🌍 World Labs
+                          World Labs
                         </button>
                       </div>
                     </div>
@@ -462,59 +461,16 @@ export default function ImageTo3DPage() {
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
                       >
-                        {/* Category Filter */}
-                        <div className="mb-6 flex flex-wrap gap-2">
-                          {DEMO_CATEGORIES.map((category) => {
-                            const itemCount = selectedCategory === "all"
-                              ? DEMO_ITEMS.length
-                              : DEMO_ITEMS.filter(item => item.category === category.id).length;
-
-                            return (
-                              <button
-                                key={category.id}
-                                onClick={() => setSelectedCategory(category.id)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                  selectedCategory === category.id
-                                    ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-sm"
-                                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 border border-gray-200 dark:border-gray-700"
-                                }`}
-                                title={category.description}
-                              >
-                                <span>{category.emoji}</span>
-                                <span>{category.label}</span>
-                                {category.id !== "all" && itemCount > 0 && (
-                                  <span className="text-xs opacity-60">({itemCount})</span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-
                         {/* Demo Grid - 4 columns on desktop, 2 on tablet, 1 on mobile */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                          {DEMO_ITEMS.filter(
-                            (demo) => selectedCategory === "all" || demo.category === selectedCategory
-                          ).map((demo, index) => (
+                          {DEMO_ITEMS.map((demo, index) => (
                             <DemoSection
                               key={index}
                               demoImageUrl={demo.imageUrl}
                               plyUrl={demo.plyUrl}
-                              title={demo.title}
-                              description={demo.description}
                             />
                           ))}
                         </div>
-
-                        {/* Empty state */}
-                        {DEMO_ITEMS.filter(
-                          (demo) => selectedCategory === "all" || demo.category === selectedCategory
-                        ).length === 0 && (
-                          <div className="text-center py-12">
-                            <p className="text-gray-500 dark:text-gray-400">
-                              No examples in this category yet. Check back soon!
-                            </p>
-                          </div>
-                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>

@@ -10,11 +10,17 @@ interface DemoSectionProps {
   demoImageUrl: string;
   /** URL to the pre-generated PLY file (optional - will show image even without PLY) */
   plyUrl?: string;
+  /** Title of the demo */
+  title?: string;
+  /** Description of the demo */
+  description?: string;
 }
 
 export default function DemoSection({
   demoImageUrl,
   plyUrl,
+  title,
+  description,
 }: DemoSectionProps) {
   const [, setLocation] = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,12 +94,24 @@ export default function DemoSection({
             }}
           />
           
-          {/* Overlay with play button - no text */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          {/* Overlay with play button and title */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex flex-col items-center justify-center p-4">
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-white/95 flex items-center justify-center shadow-lg">
                 <Play className="w-6 h-6 text-gray-900 ml-0.5" fill="currentColor" />
               </div>
+              {title && (
+                <div className="text-center">
+                  <div className="text-sm font-semibold text-white drop-shadow-lg">
+                    {title}
+                  </div>
+                  {description && (
+                    <div className="text-xs text-white/90 drop-shadow-lg mt-1">
+                      {description}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
