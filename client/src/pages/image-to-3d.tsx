@@ -43,16 +43,36 @@ export default function ImageTo3DPage() {
       // Convert image to base64
       let base64: string;
       if (imageUrl.startsWith('data:')) {
-        base64 = imageUrl.split(',')[1];
+        const parts = imageUrl.split(',');
+        if (parts.length !== 2 || !parts[1]) {
+          throw new Error('Invalid data URL format');
+        }
+        base64 = parts[1];
       } else {
         const response = await fetch(imageUrl);
         const blob = await response.blob();
-        base64 = await new Promise<string>((resolve) => {
+        base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
+          const timeoutId = setTimeout(() => {
+            reject(new Error('File reading timeout'));
+          }, 30000);
+
           reader.onload = () => {
+            clearTimeout(timeoutId);
             const result = reader.result as string;
-            resolve(result.split(',')[1]);
+            const parts = result.split(',');
+            if (parts.length !== 2 || !parts[1]) {
+              reject(new Error('Invalid data URL format'));
+              return;
+            }
+            resolve(parts[1]);
           };
+
+          reader.onerror = () => {
+            clearTimeout(timeoutId);
+            reject(new Error('Failed to read file'));
+          };
+
           reader.readAsDataURL(blob);
         });
       }
@@ -120,27 +140,19 @@ export default function ImageTo3DPage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const demoTrigger = sessionStorage.getItem('demoTrigger');
-    
-    console.log('Checking for demo:', { urlParam: urlParams.get('demo'), trigger: demoTrigger });
-    
     if (urlParams.get('demo') === 'true' || demoTrigger) {
       const demoImageUrl = sessionStorage.getItem('demoImageUrl');
       const demoPlyUrl = sessionStorage.getItem('demoPlyUrl');
-      
-      console.log('Demo detected - image:', demoImageUrl, 'ply:', demoPlyUrl);
-      
       // Clear trigger
       sessionStorage.removeItem('demoTrigger');
       
       if (demoPlyUrl) {
         // If PLY exists, go straight to viewing
-        console.log('Loading existing PLY:', demoPlyUrl);
         setModelUrl(demoPlyUrl);
         setAppState("viewing");
         setPreviewUrl(demoImageUrl || null);
       } else if (demoImageUrl) {
         // If no PLY, generate it
-        console.log('Generating PLY for:', demoImageUrl);
         handleDemoImageGenerate(demoImageUrl);
       }
       
@@ -175,12 +187,26 @@ export default function ImageTo3DPage() {
       // Convert file to base64
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
+        const timeoutId = setTimeout(() => {
+          reject(new Error('File reading timeout'));
+        }, 30000);
+
         reader.onload = () => {
+          clearTimeout(timeoutId);
           const result = reader.result as string;
-          const base64Data = result.split(",")[1];
-          resolve(base64Data);
+          const parts = result.split(",");
+          if (parts.length !== 2 || !parts[1]) {
+            reject(new Error('Invalid file format'));
+            return;
+          }
+          resolve(parts[1]);
         };
-        reader.onerror = reject;
+
+        reader.onerror = () => {
+          clearTimeout(timeoutId);
+          reject(new Error('Failed to read file'));
+        };
+
         reader.readAsDataURL(file);
       });
 
@@ -243,7 +269,6 @@ export default function ImageTo3DPage() {
       if (progressInterval) {
         clearInterval(progressInterval);
       }
-      console.error("Processing error:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
       setProcessingStage("error");
       setAppState("error");

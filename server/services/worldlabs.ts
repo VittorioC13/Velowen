@@ -25,9 +25,13 @@ interface GenerateResponse {
   updated_at: string;
   expires_at: string;
   done: boolean;
-  error: any;
-  metadata: any;
-  response: any;
+  error?: {
+    code: string;
+    message: string;
+  };
+  metadata?: {
+    world_id: string;
+  };
 }
 
 interface WorldAssets {
@@ -117,22 +121,18 @@ async function generateWorld(
 
   const model = modelType === 'fast' ? 'Marble 0.1-mini' : 'Marble 0.1-plus';
 
-  const requestBody: any = {
+  const requestBody = {
     display_name: 'Velowen Scene',
     model: model,
     world_prompt: {
-      type: 'image',
+      type: 'image' as const,
       image_prompt: {
-        source: 'media_asset',
+        source: 'media_asset' as const,
         media_asset_id: mediaAssetId,
       },
+      ...(textPrompt && { text_prompt: textPrompt }),
     },
   };
-
-  // Add text prompt if provided
-  if (textPrompt) {
-    requestBody.world_prompt.text_prompt = textPrompt;
-  }
 
   const response = await fetch(`${BASE_URL}/marble/v1/worlds:generate`, {
     method: 'POST',
@@ -233,11 +233,9 @@ export async function generateWorldFromImage(
 
   try {
     // Step 1: Upload image
-    console.log('[WorldLabs] Uploading image...');
     const mediaAssetId = await uploadImage(imageBase64, options.fileName);
 
     // Step 2: Generate world
-    console.log('[WorldLabs] Generating world...');
     const operationId = await generateWorld(
       mediaAssetId,
       options.modelType || 'fast',
@@ -245,17 +243,17 @@ export async function generateWorldFromImage(
     );
 
     // Step 3: Poll for completion
-    console.log('[WorldLabs] Polling for completion...');
     const operation = await pollOperation(operationId);
 
     // Step 4: Get world details
-    const worldId = operation.metadata.world_id;
-    console.log('[WorldLabs] Fetching world details...');
+    const worldId = operation.metadata?.world_id;
+    if (!worldId) {
+      throw new Error('No world_id returned from operation');
+    }
     const world = await getWorld(worldId);
 
     const generationTime = Math.round((Date.now() - startTime) / 1000);
 
-    console.log(`[WorldLabs] ✅ Complete in ${generationTime}s`);
 
     return {
       success: true,
@@ -266,7 +264,6 @@ export async function generateWorldFromImage(
       generationTime,
     };
   } catch (error) {
-    console.error('[WorldLabs] Error:', error);
     throw error;
   }
 }

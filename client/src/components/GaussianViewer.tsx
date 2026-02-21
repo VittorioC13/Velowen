@@ -12,7 +12,7 @@ export default function GaussianViewer({
   modelType = "ply",
 }: GaussianViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const viewerRef = useRef<any>(null);
+  const viewerRef = useRef<{ dispose: () => void } | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,8 +23,6 @@ export default function GaussianViewer({
   useEffect(() => {
     if (!containerRef.current || !modelUrl) return;
 
-    console.log('[GaussianViewer] Initializing with URL:', modelUrl);
-    console.log('[GaussianViewer] Model type:', modelType);
 
     let disposed = false;
     let animationFrameId: number;
@@ -43,10 +41,8 @@ export default function GaussianViewer({
           await initGaussianSplatViewer();
         }
       } catch (err) {
-        console.error("[GaussianViewer] Error initializing viewer:", err);
         if (!disposed) {
           const errorMsg = err instanceof Error ? err.message : String(err);
-          console.error("[GaussianViewer] Full error:", errorMsg);
           setError(`Failed to load 3D scene: ${errorMsg}`);
           setIsLoading(false);
         }
@@ -55,9 +51,7 @@ export default function GaussianViewer({
 
     const initGaussianSplatViewer = async () => {
       try {
-        console.log("[GaussianViewer] Importing Gaussian Splats library...");
         const GaussianSplats3D = await import("@mkkellogg/gaussian-splats-3d");
-        console.log("[GaussianViewer] Library imported successfully");
 
         if (disposed || !containerRef.current) return;
 
@@ -65,7 +59,6 @@ export default function GaussianViewer({
         const width = container.clientWidth;
         const height = container.clientHeight;
 
-        console.log("[GaussianViewer] Container size:", width, "x", height);
 
         // Create renderer - IMMERSIVE MODE (like Marble)
         const renderer = new THREE.WebGLRenderer({
@@ -216,8 +209,6 @@ export default function GaussianViewer({
         // Start animation loop BEFORE loading PLY - shows black scene immediately
         animate();
 
-        console.log("[GaussianViewer] Loading PLY from URL:", modelUrl);
-        console.log("[GaussianViewer] URL type:", modelUrl.startsWith('data:') ? 'data URL' : modelUrl.startsWith('blob:') ? 'blob URL' : 'HTTP URL');
 
         // Load the PLY file - progressive loading shows points as they come in
         // UPGRADED: Better quality settings for anime PLY files
@@ -236,7 +227,6 @@ export default function GaussianViewer({
 
           onProgress: (progress: number) => {
             const clampedProgress = Math.min(100, Math.round(progress));
-            console.log("[GaussianViewer] Load progress:", clampedProgress + "%");
             setLoadProgress(clampedProgress);
 
             // Dramatic reveal: Start sparse (5%), gradually increase to full (100%)
@@ -248,7 +238,6 @@ export default function GaussianViewer({
           },
         });
 
-        console.log("[GaussianViewer] PLY loaded successfully!");
 
         if (disposed) return;
 
@@ -272,7 +261,6 @@ export default function GaussianViewer({
         // Store cleanup function in viewerRef for later cleanup
         viewerRef.current.cleanupKeyboard = cleanupKeyboard;
       } catch (err) {
-        console.error("[GaussianViewer] Error in initGaussianSplatViewer:", err);
         throw err;
       }
     };

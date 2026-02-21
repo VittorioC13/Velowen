@@ -34,8 +34,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`[API] Generating with ${model}...`);
-
       if (model === "world-labs") {
         // Use World Labs API
         const result = await generateWorldFromImage(image, {

@@ -19,8 +19,6 @@ export async function generateSceneFromImage(
   const startTime = Date.now();
 
   try {
-    console.log('[SHARP-ML] Calling Modal endpoint...');
-
     const response = await fetch(MODAL_ENDPOINT_URL, {
       method: 'POST',
       headers: {
@@ -42,15 +40,12 @@ export async function generateSceneFromImage(
 
     const generationTime = Math.round((Date.now() - startTime) / 1000);
 
-    console.log(`[SHARP-ML] ✅ Complete in ${generationTime}s`);
-
     return {
       success: true,
       plyData: result.ply_base64,
       generationTime,
     };
   } catch (error) {
-    console.error('[SHARP-ML] Error:', error);
     throw error;
   }
 }

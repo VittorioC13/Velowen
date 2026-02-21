@@ -28,9 +28,7 @@ export default function DemoSection({
   const handleImageClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    console.log('Demo panel clicked', { demoImageUrl, plyUrl });
-    
+
     // Store demo info for full-screen viewer
     sessionStorage.setItem('demoImageUrl', demoImageUrl);
     sessionStorage.setItem('demoTrigger', Date.now().toString());
