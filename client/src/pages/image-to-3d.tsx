@@ -29,6 +29,12 @@ export default function ImageTo3DPage() {
   const [appState, setAppState] = useState<AppState>("upload");
   const [activeTab, setActiveTab] = useState<"upload" | "demo">("demo");
   const [selectedModel, setSelectedModel] = useState<"sharp-ml" | "world-labs" | "hunyuan">("sharp-ml");
+
+  // DEBUG: Log when component mounts
+  useEffect(() => {
+    console.log("🔴 IMAGE-TO-3D PAGE LOADED - VERSION 2.0 WITH HUNYUAN DEBUG");
+    console.log("🔴 Current selected model:", selectedModel);
+  }, []);
   
   const handleDemoImageGenerate = useCallback(async (imageUrl: string) => {
     setAppState("processing");
@@ -498,7 +504,10 @@ export default function ImageTo3DPage() {
                       </div>
                       <div className="inline-flex p-1 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                         <button
-                          onClick={() => setSelectedModel("sharp-ml")}
+                          onClick={() => {
+                            console.log("🔵 SHARP-ML button clicked");
+                            setSelectedModel("sharp-ml");
+                          }}
                           className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                             selectedModel === "sharp-ml"
                               ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm"
@@ -508,7 +517,10 @@ export default function ImageTo3DPage() {
                           SHARP-ML
                         </button>
                         <button
-                          onClick={() => setSelectedModel("world-labs")}
+                          onClick={() => {
+                            console.log("🟣 WORLD LABS button clicked");
+                            setSelectedModel("world-labs");
+                          }}
                           className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                             selectedModel === "world-labs"
                               ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-sm"
@@ -518,7 +530,11 @@ export default function ImageTo3DPage() {
                           World Labs
                         </button>
                         <button
-                          onClick={() => setSelectedModel("hunyuan")}
+                          onClick={() => {
+                            console.log("🔴 HUNYUAN button clicked!");
+                            setSelectedModel("hunyuan");
+                            console.log("🔴 Model state should now be: hunyuan");
+                          }}
                           className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                             selectedModel === "hunyuan"
                               ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm"
