@@ -23,6 +23,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { image, model = "sharp-ml", textPrompt } = req.body;
 
+      // LOG WHAT MODEL WAS SELECTED
+      console.log(`[3D Generation] Model selected: ${model}`);
+
       if (!image) {
         return res.status(400).json({ message: "Image is required" });
       }
@@ -61,6 +64,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       } else if (model === "hunyuan") {
         // Use Hunyuan3D for mesh generation
+        console.log("[Hunyuan] Starting Hunyuan3D mesh generation...");
+
+        // CHECK IF API KEY EXISTS
+        if (!process.env.REPLICATE_API_TOKEN) {
+          console.error("[Hunyuan] REPLICATE_API_TOKEN not found in environment!");
+          return res.status(500).json({
+            success: false,
+            message: "Hunyuan model not configured. REPLICATE_API_TOKEN is missing. Please use SHARP-ML or World Labs instead.",
+          });
+        }
+
         const { generateMeshFromImage } = await import("./services/hunyuan");
 
         const result = await generateMeshFromImage(image, {
@@ -69,6 +83,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           octreeResolution: 384, // Higher resolution for better anime quality
           removeBackground: true,
         });
+
+        console.log("[Hunyuan] Generation successful! GLB URL:", result.glbUrl);
 
         res.json({
           success: true,
