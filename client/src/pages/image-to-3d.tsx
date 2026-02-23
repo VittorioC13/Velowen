@@ -242,24 +242,33 @@ export default function ImageTo3DPage() {
 
       setProgress(20);
 
+      // DEBUG: Log what model is selected
+      console.log("=== DEBUG INFO ===");
+      console.log("Selected model state:", selectedModel);
+      console.log("About to send API request with model:", selectedModel);
+      console.log("==================");
+
       // Start progress estimation timer
       const estimatedDuration = 60000;
       const startTime = Date.now();
       progressInterval = setInterval(() => {
         const elapsed = Date.now() - startTime;
         const rawProgress = Math.min(95, (elapsed / estimatedDuration) * 100);
-        const easedProgress = rawProgress < 50 
-          ? rawProgress 
+        const easedProgress = rawProgress < 50
+          ? rawProgress
           : 50 + (rawProgress - 50) * 0.5;
         setStageProgress(Math.min(95, easedProgress));
       }, 500);
+
+      const requestBody = { image: base64, model: selectedModel };
+      console.log("REQUEST BODY:", requestBody);
 
       const response = await fetch("/api/generate-3d", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ image: base64, model: selectedModel }),
+        body: JSON.stringify(requestBody),
       });
 
       clearInterval(progressInterval);
