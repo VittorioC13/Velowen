@@ -341,7 +341,7 @@ export default function ImageTo3DPage() {
       setProcessingStage("error");
       setAppState("error");
     }
-  }, []);
+  }, [selectedModel]); // ADD selectedModel to dependency array so it uses the current value!
 
   const handlePromptSubmit = useCallback(async (prompt: string) => {
     setAppState("processing");
