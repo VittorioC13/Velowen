@@ -97,33 +97,44 @@ export default function ImageTo3DPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base64, model: selectedModel }),
       });
-      
+
       clearInterval(progressInterval);
       setStageProgress(100);
       setProgress(30);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error("[API ERROR]", errorData);
         throw new Error(errorData.message || "Failed to generate 3D scene");
       }
-      
+
       const result = await response.json();
+      console.log("[API RESPONSE]", result);
+      console.log("[SELECTED MODEL]", selectedModel);
+      console.log("[RESULT MODEL]", result.model);
+      console.log("[PLY URL]", result.plyUrl);
+      console.log("[GLB URL]", result.glbUrl);
+
       if (!result.success || (!result.plyUrl && !result.glbUrl)) {
         throw new Error(result.message || "No model URL returned");
       }
 
       // Hunyuan only returns GLB, others return PLY (and optionally GLB)
       if (result.plyUrl) {
+        console.log("[VIEWER] Using PLY viewer for", result.model);
         setModelUrl(result.plyUrl);
         setMeshUrl(result.glbUrl || null);
         setModelType("ply");
         setCurrentFormat("ply");
       } else if (result.glbUrl) {
         // Hunyuan case - only mesh available
+        console.log("[VIEWER] Using GLB viewer for", result.model);
         setModelUrl(result.glbUrl);
         setMeshUrl(result.glbUrl);
         setModelType("glb");
         setCurrentFormat("glb");
+      } else {
+        console.error("[VIEWER] No valid model URL found!", result);
       }
 
       setProgress(100);
@@ -281,16 +292,20 @@ export default function ImageTo3DPage() {
 
       // Hunyuan only returns GLB, others return PLY (and optionally GLB)
       if (result.plyUrl) {
+        console.log("[VIEWER] Using PLY viewer for", result.model);
         setModelUrl(result.plyUrl);
         setMeshUrl(result.glbUrl || null);
         setModelType("ply");
         setCurrentFormat("ply");
       } else if (result.glbUrl) {
         // Hunyuan case - only mesh available
+        console.log("[VIEWER] Using GLB viewer for", result.model);
         setModelUrl(result.glbUrl);
         setMeshUrl(result.glbUrl);
         setModelType("glb");
         setCurrentFormat("glb");
+      } else {
+        console.error("[VIEWER] No valid model URL found!", result);
       }
 
       // Store mesh URL for future use
