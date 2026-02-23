@@ -158,7 +158,7 @@ export default function ImageTo3DPage() {
       setError(err instanceof Error ? err.message : "Failed to generate 3D scene");
       setAppState("error");
     }
-  }, []);
+  }, [selectedModel]); // Add selectedModel to dependency array
   
   const [processingStage, setProcessingStage] = useState<ProcessingStage>("uploading");
   const [processingMode, setProcessingMode] = useState<"upload" | "prompt">("upload");
