@@ -5,11 +5,13 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 interface GaussianViewerProps {
   modelUrl: string;
   modelType?: "ply" | "glb" | "gltf";
+  className?: string;
 }
 
 export default function GaussianViewer({
   modelUrl,
   modelType = "ply",
+  className,
 }: GaussianViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<{ dispose: () => void } | null>(null);
@@ -39,6 +41,8 @@ export default function GaussianViewer({
 
         if (modelType === "ply") {
           await initGaussianSplatViewer();
+        } else if (modelType === "glb" || modelType === "gltf") {
+          await initMeshViewer();
         }
       } catch (err) {
         if (!disposed) {
@@ -265,6 +269,263 @@ export default function GaussianViewer({
       }
     };
 
+    const initMeshViewer = async () => {
+      try {
+        const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
+
+        if (disposed || !containerRef.current) return;
+
+        const container = containerRef.current;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        // Create renderer - same settings as Gaussian splat viewer
+        const renderer = new THREE.WebGLRenderer({
+          antialias: true,
+          alpha: false,
+          logarithmicDepthBuffer: true,
+          powerPreference: "high-performance",
+        });
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x1a1a2e, 1);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+        rendererRef.current = renderer;
+
+        // Create scene
+        const scene = new THREE.Scene();
+
+        // Create camera - INTERACTIVE MODE for 3D object exploration
+        const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 1000);
+        camera.position.set(0, 1, 3);
+        camera.lookAt(0, 0, 0);
+
+        // Create controls - ENHANCED ORBIT CONTROLS with free movement
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.rotateSpeed = 0.8;
+        controls.minDistance = 0.1; // Allow getting very close to the object
+        controls.maxDistance = 50; // Allow zooming far out
+        controls.enablePan = true;
+        controls.panSpeed = 0.8;
+        controls.target.set(0, 0, 0);
+        controlsRef.current = controls;
+
+        // WASD keyboard controls for exploring the 3D object
+        const keysPressed = new Set<string>();
+        const moveSpeed = 0.1;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+          const key = e.key.toLowerCase();
+          if (['w', 'a', 's', 'd', 'q', 'e', ' ', 'shift'].includes(key)) {
+            keysPressed.add(key);
+            e.preventDefault();
+          }
+        };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+          const key = e.key.toLowerCase();
+          keysPressed.delete(key);
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
+
+        const cleanupKeyboard = () => {
+          window.removeEventListener("keydown", handleKeyDown);
+          window.removeEventListener("keyup", handleKeyUp);
+        };
+
+        // Enhanced lighting for anime meshes (Hunyuan)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(ambientLight);
+
+        // Key light (main light source)
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        keyLight.position.set(5, 8, 5);
+        keyLight.castShadow = true;
+        keyLight.shadow.mapSize.width = 2048;
+        keyLight.shadow.mapSize.height = 2048;
+        keyLight.shadow.camera.near = 0.1;
+        keyLight.shadow.camera.far = 50;
+        keyLight.shadow.camera.left = -10;
+        keyLight.shadow.camera.right = 10;
+        keyLight.shadow.camera.top = 10;
+        keyLight.shadow.camera.bottom = -10;
+        scene.add(keyLight);
+
+        // Fill light (soften shadows)
+        const fillLight = new THREE.DirectionalLight(0xaaccff, 0.4);
+        fillLight.position.set(-5, 3, -5);
+        scene.add(fillLight);
+
+        // Rim light (highlight edges for anime aesthetic)
+        const rimLight = new THREE.DirectionalLight(0xffeecc, 0.3);
+        rimLight.position.set(0, 5, -8);
+        scene.add(rimLight);
+
+        // Add subtle hemisphere light for natural ambient lighting
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.3);
+        hemiLight.position.set(0, 20, 0);
+        scene.add(hemiLight);
+
+        // Load GLB model
+        const loader = new GLTFLoader();
+
+        loader.load(
+          modelUrl,
+          (gltf) => {
+            if (disposed || !containerRef.current) return;
+
+            const model = gltf.scene;
+
+            // Enable shadows and enhance materials for anime look
+            model.traverse((node: any) => {
+              if (node.isMesh) {
+                node.castShadow = true;
+                node.receiveShadow = true;
+
+                // Enhance material for better anime rendering
+                if (node.material) {
+                  node.material.needsUpdate = true;
+                  // Preserve original colors but enhance them slightly
+                  if (node.material.metalness !== undefined) {
+                    node.material.metalness = Math.min(0.3, node.material.metalness);
+                  }
+                  if (node.material.roughness !== undefined) {
+                    node.material.roughness = Math.max(0.4, node.material.roughness);
+                  }
+                }
+              }
+            });
+
+            // Center and scale model
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 2 / maxDim;
+
+            model.position.sub(center);
+            model.scale.multiplyScalar(scale);
+
+            scene.add(model);
+
+            setIsLoading(false);
+            setLoadProgress(100);
+          },
+          (progress) => {
+            if (progress.total > 0) {
+              const percent = (progress.loaded / progress.total) * 100;
+              setLoadProgress(Math.min(95, percent));
+            }
+          },
+          (error: any) => {
+            if (!disposed) {
+              setError(`Failed to load mesh: ${error.message || "Unknown error"}`);
+              setIsLoading(false);
+            }
+          }
+        );
+
+        // Animation loop with WASD movement
+        const animate = () => {
+          if (disposed) return;
+
+          animationFrameId = requestAnimationFrame(animate);
+
+          // Handle WASD movement - orbit around object while allowing free camera movement
+          if (keysPressed.size > 0) {
+            const forward = new THREE.Vector3();
+            const right = new THREE.Vector3();
+            const worldUp = new THREE.Vector3(0, 1, 0);
+
+            camera.getWorldDirection(forward);
+            right.crossVectors(forward, worldUp).normalize();
+
+            const moveVector = new THREE.Vector3();
+            const targetMoveVector = new THREE.Vector3();
+
+            if (keysPressed.has('w')) {
+              // Move camera forward (closer to object)
+              moveVector.addScaledVector(forward, moveSpeed);
+            }
+            if (keysPressed.has('s')) {
+              // Move camera backward (away from object)
+              moveVector.addScaledVector(forward, -moveSpeed);
+            }
+            if (keysPressed.has('a')) {
+              // Move camera left (orbit left)
+              moveVector.addScaledVector(right, -moveSpeed);
+            }
+            if (keysPressed.has('d')) {
+              // Move camera right (orbit right)
+              moveVector.addScaledVector(right, moveSpeed);
+            }
+            if (keysPressed.has(' ')) {
+              // Move camera up
+              moveVector.addScaledVector(worldUp, moveSpeed);
+            }
+            if (keysPressed.has('shift')) {
+              // Move camera down
+              moveVector.addScaledVector(worldUp, -moveSpeed);
+            }
+            if (keysPressed.has('q')) {
+              // Rotate object or camera left around Y-axis
+              targetMoveVector.addScaledVector(right, -moveSpeed);
+            }
+            if (keysPressed.has('e')) {
+              // Rotate object or camera right around Y-axis
+              targetMoveVector.addScaledVector(right, moveSpeed);
+            }
+
+            if (moveVector.length() > 0) {
+              camera.position.add(moveVector);
+            }
+
+            if (targetMoveVector.length() > 0) {
+              controls.target.add(targetMoveVector);
+            }
+          }
+
+          controls.update();
+          renderer.render(scene, camera);
+        };
+        animate();
+
+        // Handle window resize
+        const handleResize = () => {
+          if (!containerRef.current) return;
+
+          const newWidth = containerRef.current.clientWidth;
+          const newHeight = containerRef.current.clientHeight;
+
+          camera.aspect = newWidth / newHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(newWidth, newHeight);
+        };
+
+        window.addEventListener("resize", handleResize);
+
+        // Store cleanup function
+        viewerRef.current = {
+          dispose: () => {
+            window.removeEventListener("resize", handleResize);
+            cleanupKeyboard();
+            scene.clear();
+          },
+          cleanupKeyboard
+        };
+      } catch (err) {
+        throw err;
+      }
+    };
+
     initViewer();
 
     return () => {
@@ -298,11 +559,38 @@ export default function GaussianViewer({
   }, [modelUrl, modelType]);
 
   return (
-    <div className="relative w-full h-[60vh] bg-gray-900 rounded-lg overflow-hidden border border-gray-800">
+    <div className={`relative w-full h-[60vh] bg-gray-900 rounded-lg overflow-hidden border border-gray-800 ${className || ""}`}>
       <div
         ref={containerRef}
         className="absolute inset-0"
       />
+
+      {/* Control hints - only show for mesh viewer and after loading */}
+      {!isLoading && !error && modelType === "glb" && (
+        <div className="absolute top-4 right-4 px-4 py-3 bg-black/70 backdrop-blur-sm rounded-lg z-10 text-white/90">
+          <div className="text-xs font-semibold mb-2 text-white">Controls</div>
+          <div className="text-xs space-y-1 text-white/80">
+            <div>🖱️ <span className="font-medium">Mouse</span>: Rotate view</div>
+            <div>⌨️ <span className="font-medium">WASD</span>: Move camera</div>
+            <div>⌨️ <span className="font-medium">Q/E</span>: Orbit around</div>
+            <div>⌨️ <span className="font-medium">Space/Shift</span>: Up/Down</div>
+            <div>🖱️ <span className="font-medium">Scroll</span>: Zoom in/out</div>
+          </div>
+        </div>
+      )}
+
+      {/* Control hints for PLY viewer - after loading */}
+      {!isLoading && !error && modelType === "ply" && (
+        <div className="absolute top-4 right-4 px-4 py-3 bg-black/70 backdrop-blur-sm rounded-lg z-10 text-white/90">
+          <div className="text-xs font-semibold mb-2 text-white">Controls</div>
+          <div className="text-xs space-y-1 text-white/80">
+            <div>🖱️ <span className="font-medium">Mouse</span>: Look around</div>
+            <div>⌨️ <span className="font-medium">WASD</span>: Fly through</div>
+            <div>⌨️ <span className="font-medium">Space</span>: Move up</div>
+            <div>🖱️ <span className="font-medium">Scroll</span>: Move forward/back</div>
+          </div>
+        </div>
+      )}
 
       {/* Subtle corner loading indicator - doesn't block scene */}
       {isLoading && (

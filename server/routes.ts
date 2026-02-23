@@ -28,9 +28,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Validate model choice
-      if (!["sharp-ml", "world-labs"].includes(model)) {
+      if (!["sharp-ml", "world-labs", "hunyuan"].includes(model)) {
         return res.status(400).json({
-          message: "Invalid model. Choose 'sharp-ml' or 'world-labs'"
+          message: "Invalid model. Choose 'sharp-ml', 'world-labs', or 'hunyuan'"
         });
       }
 
@@ -45,6 +45,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({
           success: true,
           plyUrl: result.plyUrl, // Actually an SPZ URL
+          glbUrl: result.assets.mesh?.collider_mesh_url || null, // Add mesh URL
           worldId: result.worldId,
           marbleViewerUrl: result.marbleViewerUrl,
           model: "world-labs",
@@ -52,9 +53,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           assets: {
             spz_urls: result.assets.splats.spz_urls,
             pano_url: result.assets.imagery.pano_url,
+            mesh_url: result.assets.mesh?.collider_mesh_url,
             thumbnail_url: result.assets.thumbnail_url,
             caption: result.assets.caption,
           },
+        });
+
+      } else if (model === "hunyuan") {
+        // Use Hunyuan3D for mesh generation
+        const { generateMeshFromImage } = await import("./services/hunyuan");
+
+        const result = await generateMeshFromImage(image, {
+          steps: 50,
+          guidanceScale: 5.5,
+          octreeResolution: 384, // Higher resolution for better anime quality
+          removeBackground: true,
+        });
+
+        res.json({
+          success: true,
+          glbUrl: result.glbUrl,
+          plyUrl: null, // Hunyuan doesn't generate splats
+          model: "hunyuan",
+          generationTime: result.generationTime,
+          metadata: result.metadata,
         });
 
       } else {

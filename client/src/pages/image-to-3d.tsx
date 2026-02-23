@@ -28,7 +28,7 @@ export default function ImageTo3DPage() {
   const [location, setLocation] = useLocation();
   const [appState, setAppState] = useState<AppState>("upload");
   const [activeTab, setActiveTab] = useState<"upload" | "demo">("demo");
-  const [selectedModel, setSelectedModel] = useState<"sharp-ml" | "world-labs">("sharp-ml");
+  const [selectedModel, setSelectedModel] = useState<"sharp-ml" | "world-labs" | "hunyuan">("sharp-ml");
   
   const handleDemoImageGenerate = useCallback(async (imageUrl: string) => {
     setAppState("processing");
@@ -108,18 +108,35 @@ export default function ImageTo3DPage() {
       }
       
       const result = await response.json();
-      if (!result.success || !result.plyUrl) {
-        throw new Error(result.message || "No PLY URL returned");
+      if (!result.success || (!result.plyUrl && !result.glbUrl)) {
+        throw new Error(result.message || "No model URL returned");
       }
-      
-      setModelUrl(result.plyUrl);
-      setModelType("ply");
+
+      // Hunyuan only returns GLB, others return PLY (and optionally GLB)
+      if (result.plyUrl) {
+        setModelUrl(result.plyUrl);
+        setMeshUrl(result.glbUrl || null);
+        setModelType("ply");
+        setCurrentFormat("ply");
+      } else if (result.glbUrl) {
+        // Hunyuan case - only mesh available
+        setModelUrl(result.glbUrl);
+        setMeshUrl(result.glbUrl);
+        setModelType("glb");
+        setCurrentFormat("glb");
+      }
+
       setProgress(100);
       setProcessingStage("complete");
       setAppState("viewing");
-      
+
       // Store for future use
-      sessionStorage.setItem('demoPlyUrl', result.plyUrl);
+      if (result.plyUrl) {
+        sessionStorage.setItem('demoPlyUrl', result.plyUrl);
+      }
+      if (result.glbUrl) {
+        sessionStorage.setItem('demoGlbUrl', result.glbUrl);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate 3D scene");
       setAppState("error");
@@ -132,6 +149,8 @@ export default function ImageTo3DPage() {
   const [stageProgress, setStageProgress] = useState<number | undefined>(undefined);
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [modelType, setModelType] = useState<ModelType>("ply");
+  const [meshUrl, setMeshUrl] = useState<string | null>(null);
+  const [currentFormat, setCurrentFormat] = useState<"ply" | "glb">("ply");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentSceneName, setCurrentSceneName] = useState<string | null>(null);
@@ -244,8 +263,8 @@ export default function ImageTo3DPage() {
 
       const result = await response.json();
 
-      if (!result.success || !result.plyUrl) {
-        throw new Error(result.error || "No PLY URL received");
+      if (!result.success || (!result.plyUrl && !result.glbUrl)) {
+        throw new Error(result.error || "No model URL received");
       }
 
       setStageProgress(undefined);
@@ -260,8 +279,27 @@ export default function ImageTo3DPage() {
       setProcessingStage("complete");
       setProgress(100);
 
-      setModelUrl(result.plyUrl);
-      setModelType("ply");
+      // Hunyuan only returns GLB, others return PLY (and optionally GLB)
+      if (result.plyUrl) {
+        setModelUrl(result.plyUrl);
+        setMeshUrl(result.glbUrl || null);
+        setModelType("ply");
+        setCurrentFormat("ply");
+      } else if (result.glbUrl) {
+        // Hunyuan case - only mesh available
+        setModelUrl(result.glbUrl);
+        setMeshUrl(result.glbUrl);
+        setModelType("glb");
+        setCurrentFormat("glb");
+      }
+
+      // Store mesh URL for future use
+      if (result.glbUrl) {
+        sessionStorage.setItem('demoGlbUrl', result.glbUrl);
+      }
+      if (result.plyUrl) {
+        sessionStorage.setItem('demoPlyUrl', result.plyUrl);
+      }
 
       await new Promise((r) => setTimeout(r, 500));
       setAppState("viewing");
@@ -428,8 +466,10 @@ export default function ImageTo3DPage() {
                         </h3>
                         <p className="text-xs text-gray-600 dark:text-gray-400">
                           {selectedModel === "sharp-ml"
-                            ? "Apple SHARP-ML • ~35s • Open source"
-                            : "World Labs Marble • ~37s • Higher quality"}
+                            ? "Apple SHARP-ML • ~35s • 3D Splats only"
+                            : selectedModel === "world-labs"
+                            ? "World Labs Marble • ~37s • Splats + Mesh"
+                            : "Tencent Hunyuan • ~25s • High-quality mesh (Best for anime)"}
                         </p>
                       </div>
                       <div className="inline-flex p-1 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
@@ -452,6 +492,16 @@ export default function ImageTo3DPage() {
                           }`}
                         >
                           World Labs
+                        </button>
+                        <button
+                          onClick={() => setSelectedModel("hunyuan")}
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                            selectedModel === "hunyuan"
+                              ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-sm"
+                              : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                          }`}
+                        >
+                          Hunyuan (Anime)
                         </button>
                       </div>
                     </div>
@@ -609,10 +659,36 @@ export default function ImageTo3DPage() {
                   </div>
                 </div>
 
+                {/* Format Switcher - only show if both formats available */}
+                {modelUrl && meshUrl && (
+                  <div className="mb-4 flex gap-2 justify-center">
+                    <button
+                      onClick={() => setCurrentFormat("ply")}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        currentFormat === "ply"
+                          ? "bg-blue-600 text-white shadow-md"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      Gaussian Splats (Immersive)
+                    </button>
+                    <button
+                      onClick={() => setCurrentFormat("glb")}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        currentFormat === "glb"
+                          ? "bg-green-600 text-white shadow-md"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      3D Mesh (Exportable)
+                    </button>
+                  </div>
+                )}
+
                 <GaussianViewer
-                  modelUrl={modelUrl}
+                  modelUrl={currentFormat === "ply" ? modelUrl : (meshUrl || modelUrl)}
                   className="mb-20"
-                  modelType={modelType}
+                  modelType={currentFormat}
                 />
               </motion.div>
             )}
