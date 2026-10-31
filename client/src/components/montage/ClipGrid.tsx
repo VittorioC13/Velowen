@@ -53,7 +53,7 @@ export function ClipGrid() {
             <div
               className="absolute inset-0"
               style={{
-                backgroundImage: `url(${sheet.image.src})`,
+                backgroundImage: `url(${sheet.src})`,
                 backgroundSize: `${sheet.cols * 100}% ${rows * 100}%`,
                 backgroundPosition: `${(col / Math.max(1, sheet.cols - 1)) * 100}% ${(row / Math.max(1, rows - 1)) * 100}%`,
               }}

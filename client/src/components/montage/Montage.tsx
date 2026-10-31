@@ -72,6 +72,32 @@ function paintTile(
   ctx.restore();
 }
 
+// A few cells that belong to level k (not covered by an inner level)
+function probeCells(k: number): [number, number][] {
+  if (k === 0) return [[0, 0], [2, 1], [4, 2]];
+  return [
+    [WIDTHS[k] - 1, 0],
+    [WIDTHS[k] - 1, HEIGHTS[k] - 1],
+    [WIDTHS[k - 1], 0],
+  ];
+}
+
+// True when the probed tiles on this level hold footage rather than the bare
+// background, i.e. the sheet really drew. Some Safari builds draw nothing from
+// an image that isn't decoded yet, without raising an error.
+function levelPainted(canvas: HTMLCanvasElement, k: number) {
+  const ctx = canvas.getContext("2d")!;
+  const px = TILE_PX[k];
+  const blank = (d: Uint8ClampedArray) =>
+    d[3] === 0 ||
+    [[251, 250, 247], [248, 246, 241]].some(([r, g, b]) => Math.abs(d[0] - r) < 4 && Math.abs(d[1] - g) < 4 && Math.abs(d[2] - b) < 4);
+  return probeCells(k).some(([c, r]) => {
+    const x = Math.floor((c + 0.5) * px);
+    const y = Math.floor(canvas.height - (r + 0.5) * px);
+    return !blank(ctx.getImageData(x, y, 1, 1).data);
+  });
+}
+
 function paintLevel(canvas: HTMLCanvasElement, k: number, wall: Wall | null) {
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = BG;
@@ -159,10 +185,35 @@ export function Montage({ peek, onLevel, className }: Props) {
     }
     const ctxs = canvases.map((cv) => cv.getContext("2d")!);
 
-    loadWall().then((wall) => {
+    loadWall().then(async (wall) => {
       if (disposed) return;
       s.wall = wall;
-      canvases.forEach((cv, k) => paintLevel(cv, k, wall));
+
+      // Paint, then confirm the footage actually landed; repaint any level
+      // that came out blank. Show the montage once the 10K block is good.
+      let shown = false;
+      const show = () => {
+        if (!shown && !disposed) {
+          shown = true;
+          setReady(true);
+        }
+      };
+      if (wall) {
+        const done = canvases.map(() => false);
+        for (let attempt = 0; attempt < 8 && !disposed; attempt++) {
+          canvases.forEach((cv, k) => {
+            if (done[k]) return;
+            paintLevel(cv, k, wall);
+            done[k] = levelPainted(cv, k);
+          });
+          if (done[0]) show();
+          if (done.every(Boolean)) break;
+          await new Promise((r) => setTimeout(r, 250 + attempt * 150));
+        }
+        if (disposed) return;
+      } else {
+        canvases.forEach((cv, k) => paintLevel(cv, k, null));
+      }
 
       if (wall) {
         // One muted looping preview per clip, only for clips a live tile shows.
@@ -196,7 +247,7 @@ export function Montage({ peek, onLevel, className }: Props) {
         ];
         s.holdUntil = 0;
       }
-      setReady(true);
+      show();
     });
 
     const io = new IntersectionObserver(

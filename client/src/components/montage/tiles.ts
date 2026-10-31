@@ -3,7 +3,9 @@
 // each clip. There are no stand-in frames: until the sheets load, or if they
 // can't, the montage shows nothing but plain squares.
 
-export type SheetImage = { image: HTMLImageElement; cols: number; tileW: number; tileH: number };
+// `image` is what the montage draws from: a fully decoded ImageBitmap where the
+// browser supports it, else the <img>. `src` is the sheet URL for CSS use.
+export type SheetImage = { image: CanvasImageSource; src: string; cols: number; tileW: number; tileH: number };
 
 export type WallClip = { id: string; src: string; env: string; task: string };
 export type WallTile = { clip: number; x: number; t: number };
@@ -87,13 +89,25 @@ let wallPromise: Promise<Wall | null> | null = null;
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
-    image.onload = () => {
-      image.decode?.().catch(() => {});
-      resolve(image);
-    };
+    image.onload = () => resolve(image);
     image.onerror = () => reject(new Error(`Failed to load ${src}`));
     image.src = src;
   });
+}
+
+// iOS Safari can hand canvas an <img> whose pixels aren't decoded yet, and
+// drawImage then silently draws nothing. An ImageBitmap is decoded up front,
+// so draws from it always land.
+async function toDrawable(image: HTMLImageElement): Promise<CanvasImageSource> {
+  await image.decode?.().catch(() => {});
+  if (typeof createImageBitmap === "function") {
+    try {
+      return await createImageBitmap(image);
+    } catch {
+      // fall through to the element itself
+    }
+  }
+  return image;
 }
 
 // Loads the footage manifest and its sprite sheets once per page. Resolves to
@@ -116,8 +130,8 @@ export function loadWall(): Promise<Wall | null> {
       const results = await Promise.allSettled(
         sizes.map(async (size) => {
           const s = manifest.sheets[size];
-          const image = await loadImage(s.src);
-          return [size, { image, cols: s.cols, tileW: s.tileW, tileH: s.tileH }] as const;
+          const image = await toDrawable(await loadImage(s.src));
+          return [size, { image, src: s.src, cols: s.cols, tileW: s.tileW, tileH: s.tileH }] as const;
         }),
       );
       const loaded = new Map<number, SheetImage>();
