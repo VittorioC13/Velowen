@@ -8,14 +8,19 @@ import { releases } from "@/content/site";
 // Each level is rasterised once into its own on-screen canvas. Zooming never
 // repaints those canvases: a single CSS transform on the wrapper scales them
 // all, so the GPU composites every frame and motion stays at display rate.
-// Only the handful of "live" tiles are repainted, in place, each frame; with
-// real footage they play the clip's preview video.
+// Only the handful of "live" tiles are repainted, in place, each frame, from
+// the clip's playing preview video.
+//
+// Nothing is drawn until the footage has loaded; the montage then fades in
+// and starts its tour. If footage can't load, it shows plain squares.
 
 const WIDTHS = [5, 16, 50, 160]; // tiles across, per level (≈ √10 apart)
 const ASPECT = 9 / 16;
 const HEIGHTS = WIDTHS.map((w) => Math.round(w * ASPECT));
 const TILE_PX = [320, 128, 40, 12.8]; // backing pixels per tile, per level
 const REST = 1; // level the montage settles on
+const BG = "#fbfaf7";
+const EMPTY = "#efece6";
 const WASH = "rgba(247, 245, 240, 0.8)";
 const LIVE = 6;
 
@@ -37,7 +42,6 @@ function paintTile(
   k: number,
   c: number,
   r: number,
-  t: number,
   wall: Wall | null,
   video?: HTMLVideoElement,
 ) {
@@ -55,8 +59,11 @@ function paintTile(
     const { tile } = wallTileAt(wall, c, r);
     const side = video.videoHeight;
     ctx.drawImage(video, tile.x * (video.videoWidth - side), 0, side, side, x, y, s, s);
+  } else if (wall) {
+    drawTile(ctx, x, y, s, s, c, r, wall);
   } else {
-    drawTile(ctx, x, y, s, s, c, r, t, wall);
+    ctx.fillStyle = EMPTY;
+    ctx.fillRect(x, y, s, s);
   }
   if (releases[levelOf(c, r)].status !== "launching") {
     ctx.fillStyle = WASH;
@@ -67,17 +74,17 @@ function paintTile(
 
 function paintLevel(canvas: HTMLCanvasElement, k: number, wall: Wall | null) {
   const ctx = canvas.getContext("2d")!;
-  ctx.fillStyle = "#fbfaf7";
+  ctx.fillStyle = BG;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   for (let r = 0; r < HEIGHTS[k]; r++)
     for (let c = 0; c < WIDTHS[k]; c++) {
       // inner levels sit on top in their own sharper canvas
       if (k > 0 && levelOf(c, r) < k) continue;
-      paintTile(ctx, k, c, r, 0, wall);
+      paintTile(ctx, k, c, r, wall);
     }
 }
 
-type Tip = { x: number; y: number; title: string; task: string; src: string | null };
+type Tip = { x: number; y: number; title: string; task: string; src: string };
 
 type Props = {
   peek: number | null;
@@ -91,6 +98,7 @@ export function Montage({ peek, onLevel, className }: Props) {
   const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
   const labelRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const [tip, setTip] = useState<Tip | null>(null);
+  const [ready, setReady] = useState(false);
   const state = useRef({
     v: 0,
     from: 0,
@@ -105,20 +113,6 @@ export function Montage({ peek, onLevel, className }: Props) {
     live: [] as [number, number, number][],
     lastLevel: -1,
   });
-
-  // Intro tour: 10K → 10M → settle on 100K
-  useEffect(() => {
-    const s = state.current;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      s.v = s.from = s.to = REST;
-      return;
-    }
-    s.queue = [
-      { to: 0, dur: 0, hold: 1300 },
-      { to: 3, dur: 2600, hold: 700 },
-      { to: REST, dur: 1900, hold: 0 },
-    ];
-  }, []);
 
   const firstPeek = useRef(true);
   useEffect(() => {
@@ -148,30 +142,9 @@ export function Montage({ peek, onLevel, className }: Props) {
       cv.width = Math.ceil(WIDTHS[k] * TILE_PX[k]);
       cv.height = Math.ceil(HEIGHTS[k] * TILE_PX[k]);
     });
-    const paintAll = () => canvases.forEach((cv, k) => paintLevel(cv, k, s.wall));
-    paintAll();
 
     const setPlaying = (on: boolean) =>
       s.videos.forEach((v) => (on && !reduce ? v.play().catch(() => {}) : v.pause()));
-
-    loadWall().then((wall) => {
-      if (!wall || disposed) return;
-      s.wall = wall;
-      paintAll();
-      // One muted looping preview per clip, only for clips a live tile shows
-      const needed = new Set(s.live.map(([, c, r]) => wallTileAt(wall, c, r).tile.clip));
-      s.videos = [];
-      needed.forEach((i) => {
-        const v = document.createElement("video");
-        v.src = wall.clips[i].src;
-        v.muted = true;
-        v.loop = true;
-        v.playsInline = true;
-        v.preload = "auto";
-        s.videos[i] = v;
-      });
-      setPlaying(s.visible);
-    });
 
     // Live tiles: a few in 10K, a couple in 100K
     s.live = [];
@@ -185,6 +158,46 @@ export function Montage({ peek, onLevel, className }: Props) {
       s.live.push([k, c, r]);
     }
     const ctxs = canvases.map((cv) => cv.getContext("2d")!);
+
+    loadWall().then((wall) => {
+      if (disposed) return;
+      s.wall = wall;
+      canvases.forEach((cv, k) => paintLevel(cv, k, wall));
+
+      if (wall) {
+        // One muted looping preview per clip, only for clips a live tile shows.
+        // iOS only autoplays inline when muted/playsinline are attributes set
+        // before the source.
+        const needed = new Set(s.live.map(([, c, r]) => wallTileAt(wall, c, r).tile.clip));
+        s.videos = [];
+        needed.forEach((i) => {
+          const v = document.createElement("video");
+          v.muted = true;
+          v.setAttribute("muted", "");
+          v.playsInline = true;
+          v.setAttribute("playsinline", "");
+          v.loop = true;
+          v.preload = "auto";
+          v.src = wall.clips[i].src;
+          s.videos[i] = v;
+        });
+        setPlaying(s.visible);
+      }
+
+      // Start the tour now that there is something to show:
+      // 10K → 10M → settle on 100K (unless the visitor is already peeking)
+      if (reduce || !wall) {
+        s.v = s.from = s.to = REST;
+      } else if (s.dur === 0) {
+        s.queue = [
+          { to: 0, dur: 0, hold: 1300 },
+          { to: 3, dur: 2600, hold: 700 },
+          { to: REST, dur: 1900, hold: 0 },
+        ];
+        s.holdUntil = 0;
+      }
+      setReady(true);
+    });
 
     const io = new IntersectionObserver(
       ([e]) => {
@@ -239,17 +252,12 @@ export function Montage({ peek, onLevel, className }: Props) {
       }
 
       // Live tiles: repaint only the ones big enough to see
-      if (reduce) return;
-      const t = now / 1000;
+      if (reduce || !s.wall) return;
       for (const [k, c, r] of s.live) {
         if (tilePx < 10) continue;
-        if (s.wall) {
-          const video = s.videos[wallTileAt(s.wall, c, r).tile.clip];
-          if (!video || video.readyState < 2) continue;
-          paintTile(ctxs[k], k, c, r, t, s.wall, video);
-        } else {
-          paintTile(ctxs[k], k, c, r, t, null);
-        }
+        const video = s.videos[wallTileAt(s.wall, c, r).tile.clip];
+        if (!video || video.readyState < 2) continue;
+        paintTile(ctxs[k], k, c, r, s.wall, video);
       }
     };
     raf = requestAnimationFrame(frame);
@@ -268,7 +276,8 @@ export function Montage({ peek, onLevel, className }: Props) {
   }, [onLevel]);
 
   const onMove = (e: React.PointerEvent) => {
-    if (e.pointerType !== "mouse") return;
+    const wall = state.current.wall;
+    if (e.pointerType !== "mouse" || !wall) return;
     const rect = wrapRef.current!.getBoundingClientRect();
     const px = e.clientX - rect.left;
     const py = e.clientY - rect.top;
@@ -276,7 +285,7 @@ export function Montage({ peek, onLevel, className }: Props) {
     if (tilePx < 12) return setTip(null);
     const c = Math.floor(px / tilePx);
     const r = Math.floor((rect.height - py) / tilePx);
-    setTip({ x: px, y: py, ...labelAt(state.current.wall, c, r) });
+    setTip({ x: px, y: py, ...labelAt(wall, c, r) });
   };
 
   const width = wrapRef.current?.clientWidth ?? 0;
@@ -287,7 +296,8 @@ export function Montage({ peek, onLevel, className }: Props) {
   return (
     <div
       ref={wrapRef}
-      className={`relative overflow-hidden bg-[#fbfaf7] ${className ?? ""}`}
+      className={`relative overflow-hidden ${className ?? ""}`}
+      style={{ background: BG }}
       onPointerMove={onMove}
       onPointerLeave={() => setTip(null)}
       role="img"
@@ -295,38 +305,43 @@ export function Montage({ peek, onLevel, className }: Props) {
     >
       {/* World: sized so the resting level fills the frame at scale(1) */}
       <div
-        ref={worldRef}
-        className="absolute bottom-0 left-0 w-full"
-        style={{ transformOrigin: "0 100%", willChange: "transform" }}
+        className="absolute inset-0 transition-opacity duration-700 ease-out"
+        style={{ opacity: ready ? 1 : 0 }}
       >
-        {WIDTHS.map((w, k) => (
-          <canvas
-            key={k}
-            ref={(el) => (canvasRefs.current[k] = el)}
-            className="absolute bottom-0 left-0 block"
-            style={{
-              width: `${(w / WIDTHS[REST]) * 100}%`,
-              aspectRatio: `${w} / ${HEIGHTS[k]}`,
-              zIndex: WIDTHS.length - k,
-            }}
-          />
+        <div
+          ref={worldRef}
+          className="absolute bottom-0 left-0 w-full"
+          style={{ transformOrigin: "0 100%", willChange: "transform" }}
+        >
+          {WIDTHS.map((w, k) => (
+            <canvas
+              key={k}
+              ref={(el) => (canvasRefs.current[k] = el)}
+              className="absolute bottom-0 left-0 block"
+              style={{
+                width: `${(w / WIDTHS[REST]) * 100}%`,
+                aspectRatio: `${w} / ${HEIGHTS[k]}`,
+                zIndex: WIDTHS.length - k,
+              }}
+            />
+          ))}
+        </div>
+
+        {releases.map((r, k) => (
+          <span
+            key={r.id}
+            ref={(el) => (labelRefs.current[k] = el)}
+            className={`absolute left-0 top-0 z-10 bg-[#fbfaf7]/90 px-1.5 py-0.5 text-[11px] font-medium transition-opacity duration-200 ${
+              k === 0 ? "text-black/85" : "text-black/50"
+            }`}
+            style={{ opacity: 0 }}
+          >
+            {r.scale}
+          </span>
         ))}
       </div>
 
-      {releases.map((r, k) => (
-        <span
-          key={r.id}
-          ref={(el) => (labelRefs.current[k] = el)}
-          className={`absolute left-0 top-0 z-10 bg-[#fbfaf7]/90 px-1.5 py-0.5 text-[11px] font-medium transition-opacity duration-200 ${
-            k === 0 ? "text-black/85" : "text-black/50"
-          }`}
-          style={{ opacity: 0 }}
-        >
-          {r.scale}
-        </span>
-      ))}
-
-      {tip?.src ? (
+      {tip && (
         // Hover card: the clip itself, as on build.ai
         <div
           className="pointer-events-none absolute z-20 overflow-hidden rounded-2xl border border-white/50 shadow-[0_12px_40px_rgba(50,61,86,0.22)] animate-in fade-in zoom-in-95 duration-300"
@@ -347,20 +362,7 @@ export function Montage({ peek, onLevel, className }: Props) {
             </span>
           </div>
         </div>
-      ) : tip ? (
-        <div
-          className="pointer-events-none absolute z-20 flex items-center gap-1.5 whitespace-nowrap rounded-full border border-white/40 bg-white/70 px-2.5 py-1 text-[12px] text-black/75 shadow-[0_8px_24px_rgba(50,61,86,0.12)] backdrop-blur-[20px]"
-          style={{
-            left: tip.x + 14,
-            top: tip.y + 14,
-            transform: tip.x > width * 0.6 ? "translateX(calc(-100% - 28px))" : undefined,
-          }}
-        >
-          <span className="font-medium text-black/85">{tip.title}</span>
-          <span className="text-black/40">·</span>
-          {tip.task}
-        </div>
-      ) : null}
+      )}
     </div>
   );
 }

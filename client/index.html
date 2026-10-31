@@ -7,6 +7,10 @@
     <title>Velowen · The human labor dataset for Physical AI</title>
     <meta name="description" content="Velowen captures egocentric video of real work in real factories and labs, and trains models alongside the data." />
     <meta name="theme-color" content="#e7ebf4" />
+    <!-- Montage footage: start downloading before the app boots -->
+    <link rel="preload" href="/clips/wall.json" as="fetch" type="application/json" crossorigin="anonymous" />
+    <link rel="preload" href="/clips/sheet-64.webp" as="image" type="image/webp" />
+    <link rel="preload" href="/clips/sheet-128.webp" as="image" type="image/webp" />
   </head>
   <body>
     <div id="root"></div>

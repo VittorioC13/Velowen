@@ -6,8 +6,8 @@ import { SectionHead } from "@/components/site/Badge";
 import { SpecTable } from "@/components/site/SpecTable";
 import { Timeline } from "@/components/site/Timeline";
 import { Montage } from "@/components/montage/Montage";
-import { EnvTiles } from "@/components/montage/EnvTiles";
-import { environments, releases, spec10k } from "@/content/site";
+import { ClipGrid } from "@/components/montage/ClipGrid";
+import { releases, spec10k } from "@/content/site";
 
 export default function DataPage() {
   const [level, setLevel] = useState(0);
@@ -68,26 +68,8 @@ export default function DataPage() {
             <Reveal>
               <SectionHead align="left" badge="Environments" tint="peach" title="Where the hours come from." />
             </Reveal>
-            <div className="mt-12 border-t border-rule">
-              {environments.map((env, i) => (
-                <Reveal key={env.id} delay={i * 0.04}>
-                  <div className="grid items-center gap-5 border-b border-rule py-5 md:grid-cols-[200px_1fr_auto] md:gap-10">
-                    <div className="aspect-[16/10] w-full overflow-hidden rounded-2xl md:w-[200px]">
-                      <EnvTiles env={env} cols={2} rows={2} />
-                    </div>
-                    <div>
-                      <h3 className="font-serif text-[22px] font-normal text-ink">{env.name}</h3>
-                      <p className="mt-1 text-[15px] text-black/55">{env.tasks.join(", ")}</p>
-                    </div>
-                    <span
-                      className="justify-self-start rounded-full px-2.5 py-0.5 text-[12px] font-semibold text-white md:justify-self-end"
-                      style={{ background: env.tag }}
-                    >
-                      {env.short}
-                    </span>
-                  </div>
-                </Reveal>
-              ))}
+            <div className="mt-12">
+              <ClipGrid />
             </div>
           </div>
         </section>
