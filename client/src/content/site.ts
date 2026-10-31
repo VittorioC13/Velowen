@@ -13,14 +13,10 @@ export const site = {
       "We capture real work, first person, in real factories and labs, and train models alongside the data.",
   },
   mission: [
-    { text: "Physical AI learns from " },
+    { text: "Solve " },
     { text: "physical labor", color: "#46ccbd" },
-    { text: ". We put cameras where real work happens, from " },
-    { text: "paper bag lines", color: "#a08ed0" },
-    { text: " to " },
-    { text: "semiconductor cleanrooms", color: "#7cbffe" },
-    { text: ", and turn every shift into training data. Data and models, built in " },
-    { text: "parallel", color: "#46ccbd" },
+    { text: " by " },
+    { text: "hyperscaling data", color: "#7cbffe" },
     { text: "." },
   ],
 };
@@ -156,5 +152,4 @@ export const pillars = [
 export const nav = [
   { label: "Mission", href: "/#mission" },
   { label: "Data", href: "/data" },
-  { label: "Studio", href: "/studio" },
 ];

@@ -17,13 +17,6 @@ const columns = [
       { label: "Book a call", href: CALENDLY_URL, external: true },
     ],
   },
-  {
-    title: "Studio",
-    links: [
-      { label: "World model", href: "/studio" },
-      { label: "Image to 3D", href: "/studio/image-to-3d" },
-    ],
-  },
 ];
 
 export function Footer() {
@@ -31,7 +24,7 @@ export function Footer() {
     <footer className="relative overflow-hidden bg-ivory text-ink">
       <div className="mx-auto max-w-[1240px] px-5 pt-16 md:px-10">
         <div className="grid grid-cols-2 gap-y-10 border-b border-rule pb-12 md:grid-cols-4">
-          <div className="col-span-2 md:col-span-1">
+          <div className="col-span-2">
             <p className="max-w-[220px] font-serif text-[18px] leading-6 text-black/75">{site.tagline}</p>
           </div>
           {columns.map((col) => (

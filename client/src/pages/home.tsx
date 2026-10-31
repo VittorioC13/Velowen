@@ -103,10 +103,11 @@ function Hero() {
 function Mission() {
   return (
     <section id="mission" className="relative scroll-mt-24 bg-ivory py-28 md:py-40">
-      <div className="mx-auto max-w-[1000px] px-5 md:px-10">
+      <div className="mx-auto max-w-[1000px] px-5 text-center md:px-10">
+        <p className="mb-6 text-[13px] font-medium uppercase tracking-[0.14em] text-black/40">Our mission</p>
         <ScrubText
           parts={site.mission}
-          className="font-serif text-[30px] font-normal leading-[1.4] tracking-[-0.01em] text-ink md:text-[46px]"
+          className="font-serif text-[36px] font-normal leading-[1.2] tracking-[-0.02em] text-ink md:text-[60px]"
         />
       </div>
     </section>
