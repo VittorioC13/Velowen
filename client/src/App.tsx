@@ -1,91 +1,48 @@
-import { useState } from "react";
-import { Route, useLocation } from "wouter";
-import { Canvas } from "@react-three/fiber";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import { PointCloudScene } from "./components/PointCloudScene";
-import { CameraController } from "./components/CameraController";
-import { UIOverlay } from "./components/UIOverlay";
-import ImageTo3DPage from "./pages/image-to-3d";
-import "@fontsource/inter";
+import { lazy, Suspense } from "react";
+import { Redirect, Route, Switch } from "wouter";
+import HomePage from "./pages/home";
+import DataPage from "./pages/data";
+import NotFound from "./pages/not-found";
+import { useHtmlClass } from "./lib/use-html-class";
+import "@fontsource-variable/hanken-grotesk";
+import "@fontsource-variable/source-serif-4/opsz.css";
+import "@fontsource-variable/source-serif-4/opsz-italic.css";
 
-export type Season = "winter" | "spring";
+// Studio pulls in three.js and the splat viewer; keep it out of the main bundle
+const StudioPage = lazy(() => import("./pages/studio"));
+const ImageTo3DPage = lazy(() => import("./pages/image-to-3d"));
 
-function HomePage() {
-  const [season, setSeason] = useState<Season>("winter");
+// The splat viewer expects its canvas stretched to fill its container
+function GeneratorPage() {
+  useHtmlClass("lab-canvas");
+  return <ImageTo3DPage />;
+}
 
-  const winterBackground = 'linear-gradient(180deg, #93B7D7 0%, #C5D8E8 40%, #E8F0F5 100%)';
-  const springBackground = '#000000';
-
-  const winterCanvasBackground = '#C5D8E8';
-  const springCanvasBackground = '#000000';
-
-  const winterFog = '#C5D8E8';
-  const springFog = '#000000';
-
-  return (
-    <div style={{ 
-      width: '100vw', 
-      height: '100vh', 
-      position: 'relative', 
-      overflow: 'hidden', 
-      background: season === 'winter' ? winterBackground : springBackground,
-      transition: 'background 0.5s ease'
-    }}>
-      <Canvas
-        camera={{
-          position: [25, 10, 0],
-          fov: 55,
-          near: 0.1,
-          far: 200
-        }}
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: "high-performance"
-        }}
-      >
-        <color attach="background" args={[season === 'winter' ? winterCanvasBackground : springCanvasBackground]} />
-        <fog attach="fog" args={[season === 'winter' ? winterFog : springFog, 30, 120]} />
-        
-        {season === 'winter' ? (
-          <>
-            <ambientLight intensity={0.6} color="#E8F0F5" />
-            <directionalLight position={[20, 30, 10]} intensity={0.8} color="#FFFFFF" />
-            <hemisphereLight args={['#C5D8E8', '#6F8FA6', 0.5]} />
-          </>
-        ) : (
-          <>
-            <ambientLight intensity={0.3} />
-            <pointLight position={[10, 10, 10]} intensity={0.5} />
-          </>
-        )}
-        
-        <PointCloudScene season={season} />
-        <CameraController />
-        
-        <EffectComposer>
-          <Bloom 
-            luminanceThreshold={0.3}
-            luminanceSmoothing={0.9}
-            intensity={season === 'winter' ? 0.8 : 0.4}
-            radius={0.8}
-          />
-        </EffectComposer>
-      </Canvas>
-
-      <UIOverlay season={season} onSeasonChange={setSeason} />
-    </div>
-  );
+// Old links (the former home scene and /lab) keep working
+function To({ path }: { path: string }) {
+  return <Redirect to={`${path}${window.location.search}`} replace />;
 }
 
 function App() {
-  const [location] = useLocation();
-
   return (
-    <>
-      <Route path="/" component={HomePage} />
-      <Route path="/image-to-3d" component={ImageTo3DPage} />
-    </>
+    <Suspense fallback={<div className="min-h-screen bg-daylight" />}>
+      <Switch>
+        <Route path="/" component={HomePage} />
+        <Route path="/data" component={DataPage} />
+        <Route path="/studio" component={StudioPage} />
+        <Route path="/studio/image-to-3d" component={GeneratorPage} />
+        <Route path="/lab">
+          <To path="/studio" />
+        </Route>
+        <Route path="/lab/image-to-3d">
+          <To path="/studio/image-to-3d" />
+        </Route>
+        <Route path="/image-to-3d">
+          <To path="/studio/image-to-3d" />
+        </Route>
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 

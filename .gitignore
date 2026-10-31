@@ -9,6 +9,10 @@ vite.config.ts.*
 
 # Generated outputs
 client/public/outputs/
+
+# Raw montage footage (only the built sheets/previews in client/public/clips ship)
+clips-source/*
+!clips-source/clips.json
 *.ply
 *.spz
 

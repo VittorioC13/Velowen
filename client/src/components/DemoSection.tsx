@@ -37,7 +37,7 @@ export default function DemoSection({
     }
     
     // Force hard navigation to trigger useEffect
-    window.location.href = '/image-to-3d?demo=true&t=' + Date.now();
+    window.location.href = '/studio/image-to-3d?demo=true&t=' + Date.now();
   }, [demoImageUrl, plyUrl]);
 
   return (

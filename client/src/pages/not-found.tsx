@@ -1,21 +1,13 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { Link } from "wouter";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
-          <div className="flex mb-4 gap-2">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <h1 className="text-2xl font-bold text-gray-900">404 Page Not Found</h1>
-          </div>
-
-          <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
-          </p>
-        </CardContent>
-      </Card>
+    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-daylight px-5 text-center">
+      <p className="text-[14px] text-black/45">404</p>
+      <h1 className="mt-3 text-[40px] font-light text-black/85">This page wandered off.</h1>
+      <Link href="/" className="mt-8 rounded-full bg-white/70 px-5 py-2 text-[15px] font-medium text-black/75 backdrop-blur-[10px]">
+        Back to Velowen
+      </Link>
     </div>
   );
 }

@@ -5,12 +5,27 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        // Anthropic's Geist palette pairs Styrene (sans) with Tiempos (serif).
+        // Both are licensed fonts: they're listed first so they take over if
+        // installed or self-hosted; the free stand-ins load otherwise.
+        sans: ['"Styrene B"', '"Hanken Grotesk Variable"', "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ['"Tiempos Text"', '"Source Serif 4 Variable"', "ui-serif", "Georgia", "serif"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        ink: "#141413",
+        ivory: "#faf9f5",
+        warm: "#f0eee6",
+        clay: "#d97757",
+        sky: "#accdec",
+        haze: "#e7ebf4",
+        peach: "#ffddb9",
+        rule: "rgba(33, 32, 28, 0.12)",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

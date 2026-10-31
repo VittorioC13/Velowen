@@ -1,6 +1,6 @@
 import { useLocation } from 'wouter';
 import { Snowflake, Leaf } from 'lucide-react';
-import type { Season } from '../App';
+import type { Season } from '../lib/season';
 
 interface UIOverlayProps {
   season: Season;
@@ -15,7 +15,7 @@ export function UIOverlay({ season, onSeasonChange }: UIOverlayProps) {
   };
 
   const handleSearchFocus = () => {
-    setLocation('/image-to-3d');
+    setLocation('/studio/image-to-3d');
   };
 
   const isWinter = season === 'winter';

@@ -1,0 +1,31 @@
+[
+  { "file": "v01.mp4", "env": "Street food", "task": "Flatbread assembly", "egocentric": true },
+  { "file": "v02.mp4", "env": "Café", "task": "Coffee cup prep", "egocentric": true },
+  { "file": "v03.mp4", "env": "Barbershop", "task": "Haircut", "egocentric": true },
+  { "file": "v04.mp4", "env": "Bar", "task": "Cocktail making", "egocentric": true },
+  { "file": "v05.mp4", "env": "Florist", "task": "Bouquet arranging", "egocentric": true },
+  { "file": "v06.mp4", "env": "Dish room", "task": "Plate racking", "egocentric": true },
+  { "file": "v07.mp4", "env": "Dish room", "task": "Cutlery sorting", "egocentric": true },
+  { "file": "v08.mp4", "env": "Warehouse", "task": "Forklift driving", "egocentric": true },
+  { "file": "v09.mp4", "env": "Food prep", "task": "Fruit cutting", "egocentric": true },
+  { "file": "v10.mp4", "env": "Tire shop", "task": "Tire mounting", "egocentric": true },
+  { "file": "v11.mp4", "env": "Kitchen", "task": "Burger grilling", "egocentric": true },
+  { "file": "v12.mp4", "env": "Plumbing", "task": "Faucet assembly", "egocentric": true },
+  { "file": "v13.mp4", "env": "Deli", "task": "Sandwich making", "egocentric": true },
+  { "file": "fa4ecb4c6b40a9d1c503127cbd7613b3.mp4", "env": "Housekeeping", "task": "Headboard cleaning", "egocentric": true },
+  { "file": "faf147dbc8947bb361ea723f489563e6.mp4", "env": "Laundry", "task": "Hand-washing garments", "egocentric": true },
+  {
+    "file": "01cdcccf6ca72e7eb8d7a2ee7dcd7e4a.mp4",
+    "env": "Housekeeping",
+    "task": "Bed making",
+    "egocentric": false,
+    "note": "Third-person view of the capture rig; has a phone watermark"
+  },
+  {
+    "file": "1b045021c57697fb2f5e4520fc49b8ad.mp4",
+    "env": "Retail",
+    "task": "Shelving books",
+    "egocentric": false,
+    "note": "Third-person view of the capture rig"
+  }
+]

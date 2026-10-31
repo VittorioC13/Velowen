@@ -3,30 +3,127 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Daylight palette (soft sky to haze to peach) */
+    --sky: #accdec;
+    --haze: #e7ebf4;
+    --peach: #ffddb9;
+    /* Anthropic-style warm neutrals: ivory page, oat bands, slate ink */
+    --ivory: #faf9f5;
+    --warm: #f0eee6;
+    --ink: #141413;
+    --rule: rgba(20, 20, 19, 0.12);
+    --rule-strong: rgba(20, 20, 19, 0.24);
+    --teal: #46ccbd;
+    --lavender: #a08ed0;
+    --blue: #7cbffe;
+    --daylight: linear-gradient(180deg, #accdec 0%, #e7ebf4 61.54%, #ffddb9 100%);
+    --daylight-soft: linear-gradient(180deg, rgba(172, 205, 236, 0.2) 0%, rgba(231, 235, 244, 0.2) 61.54%, rgba(255, 221, 185, 0.2) 100%);
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    /* shadcn tokens still referenced by the Studio generator UI */
+    --border: 40 6% 88%;
+  }
+
   * {
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased;
     margin: 0;
     padding: 0;
-    overflow: hidden;
-    width: 100vw;
-    height: 100vh;
+    background: var(--ivory);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;  }
+
+  h1, h2, h3, .font-serif {
+    font-optical-sizing: auto;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: rgba(124, 191, 254, 0.28);
   }
 }
 
-#root {
+/* Full-screen canvas mode, used only by the Studio pages (see useHtmlClass) */
+html.lab-fullscreen,
+html.lab-fullscreen body {
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+}
+
+html.lab-fullscreen #root {
   width: 100%;
   height: 100%;
   position: fixed;
 }
 
-canvas {
+html.lab-fullscreen canvas,
+html.lab-canvas canvas {
   width: 100% !important;
   height: 100% !important;
   touch-action: none;
+}
+
+/* ---------- Site primitives ---------- */
+
+.glass {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 2px 20px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.pill-dark {
+  background: linear-gradient(168deg, #1e1e1e 50%, #6d6d6d 113%);
+  color: #fff;
+}
+
+.bg-daylight {
+  background: var(--daylight);
+}
+
+/* build.ai-style corner mark: a small square that knocks out the hairlines */
+.bolt {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  display: grid;
+  place-items: center;
+  background: var(--bolt-bg, var(--ivory));
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.bolt::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  background: var(--rule-strong);
+}
+
+.link-underline {
+  text-decoration: underline;
+  text-decoration-color: rgba(33, 32, 28, 0.25);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s var(--ease);
+}
+
+.link-underline:hover {
+  text-decoration-color: rgba(33, 32, 28, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* SHARP-ML upload zone styles */

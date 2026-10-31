@@ -194,7 +194,7 @@ export default function ImageTo3DPage() {
       
       // Clean up URL
       if (urlParams.get('demo')) {
-        setLocation('/image-to-3d');
+        setLocation('/studio/image-to-3d');
       }
     }
   }, [setLocation, handleDemoImageGenerate]);
@@ -405,10 +405,10 @@ export default function ImageTo3DPage() {
       {/* Header */}
       <div className="sticky top-0 z-50 border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/">
+          <Link href="/studio">
             <button className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
               <ArrowLeft className="w-4 h-4" strokeWidth={2} />
-              Back to Home
+              Back to Studio
             </button>
           </Link>
           <h1 className="text-xl font-bold">Velowen</h1>
