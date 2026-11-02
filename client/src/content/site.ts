@@ -73,7 +73,38 @@ export const pillars = [
   },
 ] as const;
 
+export const backer = { name: "Spark Lab", href: "https://www.sparklab.city/" };
+
+// Ant Group's ramp, month by month. Month 3 is a range and recurs.
+export const anchorCustomer = {
+  name: "Ant Group",
+  about: "Tier-1 world model and robotics firm in China",
+  ramp: [
+    { month: "Month 1", hours: 100, label: "100", note: "Pilot collection" },
+    { month: "Month 2", hours: 1000, label: "1,000", growth: "10×", note: "Scaled order" },
+    { month: "Month 3", hours: 3000, upTo: 5000, label: "3,000–5,000", growth: "3–5×", note: "Stable recurring order" },
+  ],
+};
+
+export const orders = [
+  { name: "Hangzhou Lingka Technology", city: "Hangzhou", hours: "1,000 h" },
+  { name: "Otus Intelligent Technology", city: "Shanghai", hours: "1,000 h", note: "500 h manufacturing + 500 h retail" },
+  { name: "Shanghai Jinzhun Qianzhan Data Technology", city: "Shanghai", hours: "1,000 h" },
+];
+
+export const dental = {
+  status: "In development",
+  clinics: { count: 3, city: "Shanghai" },
+  rows: [
+    ["Dataset", "The dental industry's egocentric dataset"],
+    ["Model", "Healthcare and dental physical AI"],
+  ],
+} as const;
+
 export const nav = [
   { label: "Mission", href: "/#mission" },
+  { label: "Traction", href: "/#traction" },
   { label: "Data", href: "/data" },
+  { label: "Dental", href: "/dental" },
+  { label: "Supporters", href: "/#supporters" },
 ];

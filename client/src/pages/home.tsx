@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Nav, BookButton } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/site/Reveal";
 import { ScrubText } from "@/components/site/ScrubText";
-import { SectionHead } from "@/components/site/Badge";
+import { Badge, SectionHead } from "@/components/site/Badge";
+import { LazyDentistSplat as DentistSplat } from "@/components/dental/LazyDentistSplat";
 import { SpecTable } from "@/components/site/SpecTable";
 import { Timeline } from "@/components/site/Timeline";
 import { Montage } from "@/components/montage/Montage";
-import { pillars, site, spec10k } from "@/content/site";
+import { anchorCustomer, backer, dental, orders, pillars, site, spec10k } from "@/content/site";
 
 function useHashScroll() {
   useEffect(() => {
@@ -114,17 +116,185 @@ function Mission() {
   );
 }
 
+// Soft background glows, feathered at the section's top and bottom so
+// neighbouring sections blend instead of meeting at a hard edge.
+function Glows({ children }: { children: React.ReactNode }) {
+  const fade = "linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%)";
+  return (
+    <div className="pointer-events-none absolute inset-0" style={{ maskImage: fade, WebkitMaskImage: fade }}>
+      {children}
+    </div>
+  );
+}
+
+function Traction() {
+  const max = Math.max(...anchorCustomer.ramp.map((m) => m.upTo ?? m.hours));
+  const ease = [0.645, 0.045, 0.355, 1] as const;
+  return (
+    <section id="traction" className="relative scroll-mt-24 bg-ivory pb-24 md:pb-32">
+      <div className="mx-auto max-w-[1120px] px-5 md:px-10">
+        <Reveal>
+          <SectionHead
+            badge="Traction"
+            title="Already in production."
+            body="World model and robotics teams are buying Velowen hours today, and coming back for more."
+          />
+        </Reveal>
+
+        {/* Ant Group: three months, read left to right */}
+        <Reveal className="mt-16 md:mt-20">
+          <div className="border-t border-black/70">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-5">
+              <h3 className="font-serif text-[26px] font-normal tracking-[-0.01em] text-ink">{anchorCustomer.name}</h3>
+              <p className="text-[14px] text-black/45">{anchorCustomer.about}</p>
+            </div>
+            <div className="grid border-t border-rule md:grid-cols-3">
+              {anchorCustomer.ramp.map((m, i) => (
+                <div key={m.month} className={`py-7 md:py-9 ${i ? "border-t border-rule md:border-l md:border-t-0 md:pl-8" : ""} md:pr-8`}>
+                  <div className="flex items-baseline justify-between text-[13px]">
+                    <span className="text-black/45">{m.month}</span>
+                    {"growth" in m && <span className="font-medium text-[#3a7fc4]">{m.growth}</span>}
+                  </div>
+                  <p className="mt-5 whitespace-nowrap font-serif text-[44px] font-normal leading-none tracking-[-0.03em] text-ink md:text-[clamp(36px,4.4vw,56px)]">
+                    {m.label}
+                    <span className="ml-1.5 font-sans text-[15px] tracking-normal text-black/40">h</span>
+                  </p>
+                  <p className="mt-3 text-[14px] text-black/50">{m.note}</p>
+                  {/* Hairline scale: every month on the same axis */}
+                  <div className="relative mt-7 h-px bg-black/[0.08]">
+                    {"upTo" in m && (
+                      <motion.div
+                        className="absolute -top-px left-0 h-[3px] origin-left bg-[#7cbffe]/35"
+                        style={{ width: `${(m.upTo! / max) * 100}%` }}
+                        initial={{ scaleX: 0 }}
+                        whileInView={{ scaleX: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1.4, delay: 0.3 + i * 0.15, ease }}
+                      />
+                    )}
+                    <motion.div
+                      className="absolute -top-px left-0 h-[3px] min-w-[3px] origin-left bg-ink"
+                      style={{ width: `${(m.hours / max) * 100}%` }}
+                      initial={{ scaleX: 0 }}
+                      whileInView={{ scaleX: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 1.2, delay: 0.3 + i * 0.15, ease }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+
+        {/* Fixed orders */}
+        <Reveal className="mt-14 md:mt-16">
+          <div className="border-t border-black/70">
+            <div className="flex items-baseline justify-between py-5">
+              <h3 className="font-serif text-[26px] font-normal tracking-[-0.01em] text-ink">Orders</h3>
+              <span className="text-[13px] text-black/45">Hours</span>
+            </div>
+            {orders.map((o) => (
+              <div key={o.name} className="flex items-baseline justify-between gap-6 border-t border-rule py-5">
+                <div className="min-w-0 flex-1 md:grid md:grid-cols-[1.6fr_0.6fr_1.3fr] md:items-baseline md:gap-6">
+                  <p className="font-serif text-[18px] leading-6 text-black/85">{o.name}</p>
+                  <p className="mt-1 text-[14px] text-black/45 md:mt-0">{o.city}</p>
+                  <p className="mt-0.5 text-[14px] text-black/45 md:mt-0">{o.note}</p>
+                </div>
+                <p className="shrink-0 font-serif text-[22px] leading-6 tracking-[-0.01em] text-ink">
+                  {o.hours.replace(" h", "")}
+                  <span className="ml-1 font-sans text-[13px] text-black/40">h</span>
+                </p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+function Supporters() {
+  return (
+    <section id="supporters" className="relative scroll-mt-24 overflow-hidden bg-ivory pb-24 pt-8 md:pb-32 md:pt-12">
+      <Glows>
+        <div
+          className="absolute left-1/2 top-[10%] h-[700px] w-[1100px] -translate-x-1/2"
+          style={{ background: "radial-gradient(closest-side, rgba(255,221,185,.45), rgba(255,221,185,.12) 55%, transparent)" }}
+        />
+      </Glows>
+      <div className="relative mx-auto max-w-[1120px] px-5 md:px-10">
+        <Reveal>
+          <SectionHead badge="Supporters" tint="peach" title="Backed by builders." body="Velowen is funded by Spark Lab." />
+        </Reveal>
+        <Reveal delay={0.1} className="mt-12 flex justify-center md:mt-14">
+          <a
+            href={backer.href}
+            target="_blank"
+            rel="noreferrer"
+            className="glass group flex w-full max-w-[520px] flex-col items-center rounded-[28px] px-8 pb-7 pt-12 transition-transform duration-300 hover:-translate-y-0.5"
+          >
+            <img src="/logos/sparklab.svg" alt={backer.name} className="h-16 w-auto md:h-20" draggable={false} />
+            <span className="mt-10 inline-flex items-center gap-1 text-[14px] text-black/45 transition-colors group-hover:text-black/75">
+              sparklab.city <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={1.75} />
+            </span>
+          </a>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+// Entry to the dental page: copy on one side, the live splat scene on the other
+function DentalEntry() {
+  return (
+    <section id="dental" className="scroll-mt-24 bg-ivory pb-24 md:pb-32">
+      <div className="mx-auto max-w-[1240px] px-5 md:px-10">
+        <Reveal>
+          <Link
+            href="/dental"
+            className="group relative grid overflow-hidden rounded-[32px] border border-black/[0.05] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]"
+            style={{ background: "linear-gradient(135deg, #e3f5f1 0%, #eef2f7 50%, #fbeee2 100%)" }}
+          >
+            <div className="relative z-10 flex flex-col justify-center p-7 md:p-12">
+              <div>
+                <Badge tint="mint">Healthcare</Badge>
+              </div>
+              <h2 className="mt-5 font-serif text-[34px] font-normal leading-[40px] tracking-[-0.015em] text-ink md:text-[48px] md:leading-[54px]">
+                Next frontier: dental.
+              </h2>
+              <p className="mt-4 max-w-[460px] text-[18px] leading-[26px] text-black/60 md:text-[19px] md:leading-[28px]">
+                The dental industry's egocentric dataset, and healthcare physical AI built on it. Now collecting with{" "}
+                {dental.clinics.count} partner clinics in {dental.clinics.city}.
+              </p>
+              <span className="pill-dark mt-8 inline-flex h-11 w-fit items-center gap-2 rounded-full px-6 text-[16px] font-medium">
+                Explore dental
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" strokeWidth={1.5} />
+              </span>
+            </div>
+            <div className="relative aspect-[4/3] lg:aspect-auto lg:min-h-[480px]">
+              <DentistSplat className="absolute inset-0" detail="low" />
+            </div>
+          </Link>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 function DataModels() {
   return (
     <section className="relative overflow-hidden bg-ivory py-24 md:py-32">
-      <div
-        className="pointer-events-none absolute left-[-10%] top-[10%] h-[920px] w-[920px]"
-        style={{ background: "radial-gradient(circle farthest-side, rgba(238,183,128,.40) 0%, rgba(238,183,128,.18) 38%, rgba(238,183,128,.06) 66%, transparent 100%)" }}
-      />
-      <div
-        className="pointer-events-none absolute right-[-12%] top-[-5%] h-[920px] w-[920px]"
-        style={{ background: "radial-gradient(circle farthest-side, rgba(140,166,212,.38) 0%, rgba(140,166,212,.18) 38%, rgba(140,166,212,.06) 66%, transparent 100%)" }}
-      />
+      <Glows>
+        <div
+          className="absolute left-[-10%] top-[10%] h-[920px] w-[920px]"
+          style={{ background: "radial-gradient(circle farthest-side, rgba(238,183,128,.40) 0%, rgba(238,183,128,.18) 38%, rgba(238,183,128,.06) 66%, transparent 100%)" }}
+        />
+        <div
+          className="absolute right-[-12%] top-[-5%] h-[920px] w-[920px]"
+          style={{ background: "radial-gradient(circle farthest-side, rgba(140,166,212,.38) 0%, rgba(140,166,212,.18) 38%, rgba(140,166,212,.06) 66%, transparent 100%)" }}
+        />
+      </Glows>
       <div className="relative mx-auto max-w-[1240px] px-5 md:px-10">
         <Reveal>
           <SectionHead
@@ -221,8 +391,11 @@ export default function HomePage() {
       <main>
         <Hero />
         <Mission />
+        <Traction />
+        <Supporters />
         <DataModels />
         <Spec />
+        <DentalEntry />
         <Partner />
       </main>
       <Footer />

@@ -4,6 +4,7 @@ const tints = {
   sky: "radial-gradient(112% 100% at 50% 0%, rgba(239,240,179,.22) 44%, rgba(146,203,232,.24) 100%), linear-gradient(rgba(255,255,255,.6), rgba(255,255,255,.6))",
   lilac: "radial-gradient(112% 100% at 50% 0%, rgba(229,219,246,.24) 44%, rgba(114,195,239,.2) 100%), linear-gradient(rgba(255,255,255,.6), rgba(255,255,255,.6))",
   peach: "radial-gradient(112% 100% at 50% 0%, rgba(255,226,195,.3) 44%, rgba(234,201,118,.2) 100%), linear-gradient(rgba(255,255,255,.6), rgba(255,255,255,.6))",
+  mint: "radial-gradient(112% 100% at 50% 0%, rgba(214,244,236,.3) 44%, rgba(70,204,189,.2) 100%), linear-gradient(rgba(255,255,255,.6), rgba(255,255,255,.6))",
 };
 
 export function Badge({ children, tint = "sky" }: { children: ReactNode; tint?: keyof typeof tints }) {

@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { CALENDLY_URL, site } from "@/content/site";
+import { CALENDLY_URL, backer, site } from "@/content/site";
 
 const columns = [
   {
@@ -7,12 +7,15 @@ const columns = [
     links: [
       { label: "Egocentric-10K", href: "/data" },
       { label: "Environments", href: "/data#environments" },
+      { label: "Dental", href: "/dental" },
     ],
   },
   {
     title: "Company",
     links: [
       { label: "Mission", href: "/#mission" },
+      { label: "Traction", href: "/#traction" },
+      { label: "Supporters", href: "/#supporters" },
       { label: "Partner with us", href: "/#partner" },
       { label: "Book a call", href: CALENDLY_URL, external: true },
     ],
@@ -75,7 +78,13 @@ export function Footer() {
         </div>
         <div className="mt-8 flex flex-wrap items-end justify-between gap-4 text-[14px] text-black/45">
           <p className="max-w-[320px]">Egocentric data and models for the frontier of human physical labor.</p>
-          <p>© 2026 Velowen</p>
+          <p>
+            Backed by{" "}
+            <a href={backer.href} target="_blank" rel="noreferrer" className="text-black/65 underline-offset-4 hover:text-black/85 hover:underline">
+              {backer.name}
+            </a>
+            <span className="mx-2 text-black/25">·</span>© 2026 Velowen
+          </p>
         </div>
       </div>
     </footer>

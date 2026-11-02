@@ -1,6 +1,7 @@
 import { Redirect, Route, Switch } from "wouter";
 import HomePage from "./pages/home";
 import DataPage from "./pages/data";
+import DentalPage from "./pages/dental";
 import NotFound from "./pages/not-found";
 import "@fontsource-variable/hanken-grotesk";
 import "@fontsource-variable/source-serif-4/opsz.css";
@@ -16,6 +17,7 @@ function App() {
     <Switch>
       <Route path="/" component={HomePage} />
       <Route path="/data" component={DataPage} />
+      <Route path="/dental" component={DentalPage} />
       {HIDDEN.map((path) => (
         <Route key={path} path={path}>
           <Redirect to="/" replace />
