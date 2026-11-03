@@ -50,15 +50,6 @@ export const spec10k: SpecRow[] = [
   { label: "Availability", value: "December 2026, gated on Hugging Face", confirm: true },
 ];
 
-// Partner sites where we capture. Partners are not named publicly.
-export const collaborators = [
-  { count: 5, label: "Dental clinics", detail: ["Shanghai"], tint: "#46ccbd" },
-  { count: 3, label: "Factory floors", detail: ["Manufacturing"], tint: "#eac976" },
-  { count: 3, label: "Retail stores", detail: ["Retail"], tint: "#ea7c76" },
-  { count: 3, label: "Sports clubs", detail: ["Tennis", "Basketball", "Golf"], tint: "#7cbffe" },
-  { count: 1, label: "Music studio", detail: ["Piano", "Guitar", "Vocal"], tint: "#a08ed0" },
-];
-
 export const backer = { name: "Spark Lab", href: "https://www.sparklab.city/" };
 
 // Ant Group's ramp, month by month. Month 3 is a range and recurs.
