@@ -302,7 +302,7 @@ function Collaborators() {
             badge="Collaborators"
             tint="lilac"
             title={`${total} partner sites, and growing.`}
-            body="Real workplaces where we capture skilled hands at work. Our partners stay unnamed; the work speaks for itself."
+            body="Real workplaces where we capture skilled hands at work, from dental chairs to factory floors."
           />
         </Reveal>
         <div className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-5">

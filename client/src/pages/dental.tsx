@@ -112,14 +112,15 @@ export default function DentalPage() {
             </Reveal>
           </div>
           <div className="mx-auto mt-14 grid max-w-[1240px] grid-cols-2 gap-3 px-5 sm:grid-cols-3 md:px-10 lg:grid-cols-5">
-            {Array.from({ length: count }, (_, i) => (
-              <Reveal key={i} delay={0.08 * i}>
-                <div className="glass flex items-end justify-between rounded-[24px] p-6">
-                  <div>
-                    <p className="text-[13px] text-black/45">Partner clinic</p>
-                    <p className="mt-1 font-serif text-[22px] text-ink">{city}</p>
+            {dental.clinics.names.map((name, i) => (
+              <Reveal key={name} delay={0.08 * i}>
+                <div className="glass flex h-full flex-col rounded-[24px] p-6">
+                  <div className="flex items-center justify-between text-[13px] text-black/40">
+                    <span>0{i + 1}</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#46ccbd]" />
                   </div>
-                  <span className="font-serif text-[44px] leading-none tracking-[-0.03em] text-black/15">0{i + 1}</span>
+                  <p className="mt-8 font-serif text-[22px] leading-7 text-ink">{name}</p>
+                  <p className="mt-1 text-[13px] text-black/45">{city}</p>
                 </div>
               </Reveal>
             ))}

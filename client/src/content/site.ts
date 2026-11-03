@@ -80,7 +80,11 @@ export const orders = [
 
 export const dental = {
   status: "In development",
-  clinics: { count: 5, city: "Shanghai" },
+  clinics: {
+    count: 5,
+    city: "Shanghai",
+    names: ["Ya Le Dental", "New Smile Dental", "Fuan Dental", "Songjing Dental", "Kainos Dental"],
+  },
   rows: [
     ["Dataset", "The dental industry's egocentric dataset"],
     ["Model", "Healthcare and dental physical AI"],
