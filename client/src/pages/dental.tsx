@@ -111,7 +111,7 @@ export default function DentalPage() {
               />
             </Reveal>
           </div>
-          <div className="mx-auto mt-14 grid max-w-[1240px] gap-3 px-5 sm:grid-cols-3 md:px-10">
+          <div className="mx-auto mt-14 grid max-w-[1240px] grid-cols-2 gap-3 px-5 sm:grid-cols-3 md:px-10 lg:grid-cols-5">
             {Array.from({ length: count }, (_, i) => (
               <Reveal key={i} delay={0.08 * i}>
                 <div className="glass flex items-end justify-between rounded-[24px] p-6">

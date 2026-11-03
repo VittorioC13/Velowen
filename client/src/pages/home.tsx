@@ -11,7 +11,7 @@ import { LazyDentistSplat as DentistSplat } from "@/components/dental/LazyDentis
 import { SpecTable } from "@/components/site/SpecTable";
 import { Timeline } from "@/components/site/Timeline";
 import { Montage } from "@/components/montage/Montage";
-import { anchorCustomer, backer, dental, orders, pillars, site, spec10k } from "@/content/site";
+import { anchorCustomer, backer, dental, collaborators, orders, site, spec10k } from "@/content/site";
 
 function useHashScroll() {
   useEffect(() => {
@@ -282,48 +282,57 @@ function DentalEntry() {
   );
 }
 
-function DataModels() {
+function Collaborators() {
+  const total = collaborators.reduce((n, c) => n + c.count, 0);
   return (
-    <section className="relative overflow-hidden bg-ivory py-24 md:py-32">
+    <section id="collaborators" className="relative scroll-mt-24 overflow-hidden bg-ivory py-24 md:py-32">
       <Glows>
         <div
           className="absolute left-[-10%] top-[10%] h-[920px] w-[920px]"
-          style={{ background: "radial-gradient(circle farthest-side, rgba(238,183,128,.40) 0%, rgba(238,183,128,.18) 38%, rgba(238,183,128,.06) 66%, transparent 100%)" }}
+          style={{ background: "radial-gradient(circle farthest-side, rgba(238,183,128,.34) 0%, rgba(238,183,128,.14) 40%, transparent 100%)" }}
         />
         <div
           className="absolute right-[-12%] top-[-5%] h-[920px] w-[920px]"
-          style={{ background: "radial-gradient(circle farthest-side, rgba(140,166,212,.38) 0%, rgba(140,166,212,.18) 38%, rgba(140,166,212,.06) 66%, transparent 100%)" }}
+          style={{ background: "radial-gradient(circle farthest-side, rgba(140,166,212,.32) 0%, rgba(140,166,212,.14) 40%, transparent 100%)" }}
         />
       </Glows>
       <div className="relative mx-auto max-w-[1240px] px-5 md:px-10">
         <Reveal>
           <SectionHead
-            badge="Data × Models"
+            badge="Collaborators"
             tint="lilac"
-            title="Data and models, in parallel."
-            body="We collect the data and train on it at the same time. Each side tells the other what to do next."
+            title={`${total} partner sites, and growing.`}
+            body="Real workplaces where we capture skilled hands at work. Our partners stay unnamed; the work speaks for itself."
           />
         </Reveal>
-        <div className="mx-auto mt-14 grid max-w-[980px] gap-4 md:grid-cols-2 md:gap-5">
-          {pillars.map((p, i) => (
-            <Reveal key={p.id} delay={i * 0.1}>
-              <div className="glass h-full rounded-[28px] p-6 md:p-8">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-serif text-[28px] font-normal tracking-[-0.01em] text-ink">{p.title}</h3>
-                  <span className="text-[13px] text-black/40">0{i + 1}</span>
-                </div>
-                <p className="mt-3 text-[16px] leading-[25px] text-black/65">{p.body}</p>
-                <dl className="mt-6 border-t border-rule">
-                  {p.rows.map(([k, v]) => (
-                    <div key={k} className="flex justify-between gap-4 border-b border-rule py-3 text-[14px]">
-                      <dt className="text-black/45">{k}</dt>
-                      <dd className="text-right text-black/80">{v}</dd>
-                    </div>
+        <div className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-5">
+          {collaborators.map((c, i) => {
+            const card = (
+              <div className="glass group flex h-full flex-col rounded-[24px] p-5 transition-transform duration-300 hover:-translate-y-0.5 md:p-6">
+                <span className="h-1.5 w-6 rounded-full" style={{ background: c.tint }} />
+                <p className="mt-6 font-serif text-[52px] font-normal leading-none tracking-[-0.03em] text-ink md:text-[64px]">{c.count}</p>
+                <p className="mt-3 text-[16px] font-medium text-black/80">{c.label}</p>
+                <div className="mt-auto flex flex-wrap gap-1.5 pt-5">
+                  {c.detail.map((d) => (
+                    <span key={d} className="rounded-full bg-black/[0.04] px-2.5 py-1 text-[12px] text-black/55">
+                      {d}
+                    </span>
                   ))}
-                </dl>
+                </div>
               </div>
-            </Reveal>
-          ))}
+            );
+            return (
+              <Reveal key={c.label} delay={i * 0.06} className={i === collaborators.length - 1 ? "col-span-2 md:col-span-1" : ""}>
+                {c.label === "Dental clinics" ? (
+                  <Link href="/dental" className="block h-full">
+                    {card}
+                  </Link>
+                ) : (
+                  card
+                )}
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -393,7 +402,7 @@ export default function HomePage() {
         <Mission />
         <Traction />
         <Supporters />
-        <DataModels />
+        <Collaborators />
         <Spec />
         <DentalEntry />
         <Partner />

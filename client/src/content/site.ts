@@ -50,28 +50,14 @@ export const spec10k: SpecRow[] = [
   { label: "Availability", value: "December 2026, gated on Hugging Face", confirm: true },
 ];
 
-export const pillars = [
-  {
-    id: "data",
-    title: "Data",
-    body: "Head-mounted capture across real worksites, with consent, calibration and QA built into every shift.",
-    rows: [
-      ["Capture", "Egocentric video"],
-      ["Sites", "20+ worksites"],
-      ["Hours", "10,000 and scaling"],
-    ],
-  },
-  {
-    id: "models",
-    title: "Models",
-    body: "We train on what we collect, so every release is shaped by what manipulation models actually need.",
-    rows: [
-      ["Focus", "Hands, tools, objects"],
-      ["Signals", "Pose, contact, task"],
-      ["Loop", "Data ↔ model, in parallel"],
-    ],
-  },
-] as const;
+// Partner sites where we capture. Partners are not named publicly.
+export const collaborators = [
+  { count: 5, label: "Dental clinics", detail: ["Shanghai"], tint: "#46ccbd" },
+  { count: 3, label: "Factory floors", detail: ["Manufacturing"], tint: "#eac976" },
+  { count: 3, label: "Retail stores", detail: ["Retail"], tint: "#ea7c76" },
+  { count: 3, label: "Sports clubs", detail: ["Tennis", "Basketball", "Golf"], tint: "#7cbffe" },
+  { count: 1, label: "Music studio", detail: ["Piano", "Guitar", "Vocal"], tint: "#a08ed0" },
+];
 
 export const backer = { name: "Spark Lab", href: "https://www.sparklab.city/" };
 
@@ -94,7 +80,7 @@ export const orders = [
 
 export const dental = {
   status: "In development",
-  clinics: { count: 3, city: "Shanghai" },
+  clinics: { count: 5, city: "Shanghai" },
   rows: [
     ["Dataset", "The dental industry's egocentric dataset"],
     ["Model", "Healthcare and dental physical AI"],
