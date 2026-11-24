@@ -11,6 +11,7 @@ import { LazyDentistSplat as DentistSplat } from "@/components/dental/LazyDentis
 import { SpecTable } from "@/components/site/SpecTable";
 import { Timeline } from "@/components/site/Timeline";
 import { Montage } from "@/components/montage/Montage";
+import { Buyers } from "@/components/site/Buyers";
 import { anchorCustomer, backer, dental, orders, site, spec10k } from "@/content/site";
 
 function useHashScroll() {
@@ -344,6 +345,7 @@ export default function HomePage() {
         <Hero />
         <Mission />
         <Traction />
+        <Buyers />
         <Supporters />
         <Spec />
         <DentalEntry />

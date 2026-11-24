@@ -15,6 +15,7 @@ const columns = [
     links: [
       { label: "Mission", href: "/#mission" },
       { label: "Traction", href: "/#traction" },
+      { label: "Buyers", href: "/#buyers" },
       { label: "Supporters", href: "/#supporters" },
       { label: "Partner with us", href: "/#partner" },
       { label: "Book a call", href: CALENDLY_URL, external: true },

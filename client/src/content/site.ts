@@ -85,7 +85,27 @@ export const dental = {
 export const nav = [
   { label: "Mission", href: "/#mission" },
   { label: "Traction", href: "/#traction" },
+  { label: "Buyers", href: "/#buyers" },
   { label: "Data", href: "/data" },
   { label: "Dental", href: "/dental" },
   { label: "Supporters", href: "/#supporters" },
+];
+
+// Buyer markets shown on the home page globe, in the order the globe visits them.
+// `id` is the ISO 3166-1 numeric code used by world-atlas.
+export type Market = {
+  id: string;
+  name: string;
+  flag: "es" | "jp" | "de" | "se" | "cn";
+  focus: string;
+  // Where the globe should centre: [longitude, latitude]
+  center: [number, number];
+};
+
+export const markets: Market[] = [
+  { id: "724", name: "Spain", flag: "es", focus: "Supermarket shelf replenishment", center: [-3.7, 40.2] },
+  { id: "276", name: "Germany", flag: "de", focus: "Agriculture", center: [10.4, 51.1] },
+  { id: "752", name: "Sweden", flag: "se", focus: "General task families", center: [16.3, 62.5] },
+  { id: "156", name: "China", flag: "cn", focus: "Semiconductor manufacturing, dental clinics", center: [104.2, 35.9] },
+  { id: "392", name: "Japan", flag: "jp", focus: "Industrial and automobile repair", center: [138.3, 36.6] },
 ];
