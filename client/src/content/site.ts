@@ -109,3 +109,54 @@ export const markets: Market[] = [
   { id: "156", name: "China", flag: "cn", focus: "Semiconductor manufacturing, dental clinics", center: [104.2, 35.9] },
   { id: "392", name: "Japan", flag: "jp", focus: "Industrial and automobile repair", center: [138.3, 36.6] },
 ];
+
+// Capture capacity and in-stock inventory, from the dataset price sheet
+// (EUR price sheet, Nov 2026). Hours are validated, ready to deliver.
+export const capacity = {
+  weeklyHours: 200, // new egocentric hours produced per week
+};
+
+export type Device = { name: string; kind: string; hours: number };
+export type DeviceGroup = { id: string; name: string; about: string; devices: Device[] };
+
+export const deviceGroups: DeviceGroup[] = [
+  {
+    id: "ego",
+    name: "Egocentric",
+    about: "Worn by people, first person",
+    devices: [
+      { name: "PICO 4 Ultra", kind: "Head-mounted stereo", hours: 50000 },
+      { name: "GoPro HERO9 Black", kind: "Head-mounted monocular", hours: 30000 },
+      { name: "LivSyn LivUMI-Ego Plus", kind: "Stereo RGB + IMU", hours: 10000 },
+      { name: "Six-camera rig", kind: "Head-mounted, hand tracking + IMU", hours: 8000 },
+    ],
+  },
+  {
+    id: "umi",
+    name: "UMI",
+    about: "Handheld gripper, robot-ready actions",
+    devices: [{ name: "SeerFusion One", kind: "Six cameras + gripper", hours: 70000 }],
+  },
+  {
+    id: "robot",
+    name: "Robot teleoperation",
+    about: "Recorded on real robots",
+    devices: [
+      { name: "LinkerBot Linker Humanoid", kind: "Dual-arm, dexterous hands", hours: 10000 },
+      { name: "DexTeleop TA2", kind: "Wheeled dual-arm", hours: 4113 },
+      { name: "X Square Quanta X1 Pro", kind: "Wheeled dual-arm", hours: 4000 },
+      { name: "Zerith H1 Pro", kind: "Wheeled dual-arm", hours: 585 },
+      { name: "AgiBot G1", kind: "Wheeled dual-arm", hours: 500 },
+      { name: "AgiBot X2", kind: "Bipedal humanoid", hours: 200 },
+      { name: "Unitree G1-D", kind: "Wheeled dual-arm", hours: 200 },
+      { name: "AgiBot G2", kind: "Wheeled dual-arm", hours: 100 },
+      { name: "AgiBot A2", kind: "Bipedal humanoid", hours: 100 },
+      { name: "Ligong Lidian F1", kind: "Wheeled dual-arm", hours: 38 },
+      { name: "LimX Oli", kind: "Bipedal humanoid", hours: 20 },
+    ],
+  },
+];
+
+export const groupHours = (g: DeviceGroup) => g.devices.reduce((s, d) => s + d.hours, 0);
+export const totalHours = deviceGroups.reduce((s, g) => s + groupHours(g), 0);
+export const deviceCount = deviceGroups.reduce((s, g) => s + g.devices.length, 0);

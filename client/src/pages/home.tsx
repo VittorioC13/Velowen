@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { Nav, BookButton } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
@@ -12,7 +11,19 @@ import { SpecTable } from "@/components/site/SpecTable";
 import { Timeline } from "@/components/site/Timeline";
 import { Montage } from "@/components/montage/Montage";
 import { Buyers } from "@/components/site/Buyers";
-import { anchorCustomer, backer, dental, orders, site, spec10k } from "@/content/site";
+import {
+  anchorCustomer,
+  backer,
+  capacity,
+  dental,
+  deviceCount,
+  deviceGroups,
+  groupHours,
+  orders,
+  site,
+  spec10k,
+  totalHours,
+} from "@/content/site";
 
 function useHashScroll() {
   useEffect(() => {
@@ -128,9 +139,15 @@ function Glows({ children }: { children: React.ReactNode }) {
   );
 }
 
+const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
+
 function Traction() {
-  const max = Math.max(...anchorCustomer.ramp.map((m) => m.upTo ?? m.hours));
-  const ease = [0.645, 0.045, 0.355, 1] as const;
+  const stats = [
+    { value: `${fmt(Math.floor(totalHours / 1000) * 1000)}+`, unit: "h", label: "Validated data in stock, ready to ship" },
+    { value: String(capacity.weeklyHours), unit: "h / week", label: "New egocentric data, every week" },
+    { value: String(deviceCount), unit: "devices", label: "From head-mounted cameras to humanoid robots" },
+  ];
+  const ramp = anchorCustomer.ramp;
   return (
     <section id="traction" className="relative scroll-mt-24 bg-ivory pb-24 md:pb-32">
       <div className="mx-auto max-w-[1120px] px-5 md:px-10">
@@ -142,74 +159,100 @@ function Traction() {
           />
         </Reveal>
 
-        {/* Ant Group: three months, read left to right */}
-        <Reveal className="mt-16 md:mt-20">
-          <div className="border-t border-black/70">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-5">
-              <h3 className="font-serif text-[26px] font-normal tracking-[-0.01em] text-ink">{anchorCustomer.name}</h3>
-              <p className="text-[14px] text-black/45">{anchorCustomer.about}</p>
+        {/* Three numbers, nothing else */}
+        <Reveal className="mt-16 grid gap-10 md:mt-20 md:grid-cols-3 md:gap-8">
+          {stats.map((s) => (
+            <div key={s.label} className="border-t border-black/70 pt-6">
+              <p className="font-serif text-[52px] font-normal leading-none tracking-[-0.03em] text-ink md:text-[60px]">
+                {s.value}
+                <span className="ml-2 font-sans text-[16px] tracking-normal text-black/40">{s.unit}</span>
+              </p>
+              <p className="mt-4 text-[16px] leading-6 text-black/55">{s.label}</p>
             </div>
-            <div className="grid border-t border-rule md:grid-cols-3">
-              {anchorCustomer.ramp.map((m, i) => (
-                <div key={m.month} className={`py-7 md:py-9 ${i ? "border-t border-rule md:border-l md:border-t-0 md:pl-8" : ""} md:pr-8`}>
-                  <div className="flex items-baseline justify-between text-[13px]">
-                    <span className="text-black/45">{m.month}</span>
-                    {"growth" in m && <span className="font-medium text-[#3a7fc4]">{m.growth}</span>}
-                  </div>
-                  <p className="mt-5 whitespace-nowrap font-serif text-[44px] font-normal leading-none tracking-[-0.03em] text-ink md:text-[clamp(36px,4.4vw,56px)]">
-                    {m.label}
-                    <span className="ml-1.5 font-sans text-[15px] tracking-normal text-black/40">h</span>
-                  </p>
-                  <p className="mt-3 text-[14px] text-black/50">{m.note}</p>
-                  {/* Hairline scale: every month on the same axis */}
-                  <div className="relative mt-7 h-px bg-black/[0.08]">
-                    {"upTo" in m && (
-                      <motion.div
-                        className="absolute -top-px left-0 h-[3px] origin-left bg-[#7cbffe]/35"
-                        style={{ width: `${(m.upTo! / max) * 100}%` }}
-                        initial={{ scaleX: 0 }}
-                        whileInView={{ scaleX: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.4, delay: 0.3 + i * 0.15, ease }}
-                      />
-                    )}
-                    <motion.div
-                      className="absolute -top-px left-0 h-[3px] min-w-[3px] origin-left bg-ink"
-                      style={{ width: `${(m.hours / max) * 100}%` }}
-                      initial={{ scaleX: 0 }}
-                      whileInView={{ scaleX: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 1.2, delay: 0.3 + i * 0.15, ease }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </Reveal>
 
-        {/* Fixed orders */}
-        <Reveal className="mt-14 md:mt-16">
-          <div className="border-t border-black/70">
-            <div className="flex items-baseline justify-between py-5">
-              <h3 className="font-serif text-[26px] font-normal tracking-[-0.01em] text-ink">Orders</h3>
-              <span className="text-[13px] text-black/45">Hours</span>
+        {/* Customers: one growth line, then the repeat orders */}
+        <Reveal className="mt-20 grid gap-12 md:mt-24 md:grid-cols-2 md:gap-16">
+          <div>
+            <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-black/40">Anchor customer</p>
+            <h3 className="mt-3 font-serif text-[28px] font-normal tracking-[-0.01em] text-ink">{anchorCustomer.name}</h3>
+            <p className="mt-1 text-[15px] text-black/45">{anchorCustomer.about}</p>
+            <div className="mt-8 flex flex-wrap items-baseline gap-x-3 gap-y-2">
+              {ramp.map((m, i) => (
+                <span key={m.month} className="inline-flex items-baseline gap-3">
+                  {i > 0 && <ArrowRight className="h-4 w-4 self-center text-black/30" strokeWidth={1.5} />}
+                  <span className="font-serif text-[26px] tracking-[-0.01em] text-ink">
+                    {m.label}
+                    <span className="ml-1 font-sans text-[13px] text-black/40">h</span>
+                  </span>
+                </span>
+              ))}
             </div>
-            {orders.map((o) => (
-              <div key={o.name} className="flex items-baseline justify-between gap-6 border-t border-rule py-5">
-                <div className="min-w-0 flex-1 md:grid md:grid-cols-[1.6fr_0.6fr_1.3fr] md:items-baseline md:gap-6">
-                  <p className="font-serif text-[18px] leading-6 text-black/85">{o.name}</p>
-                  <p className="mt-1 text-[14px] text-black/45 md:mt-0">{o.city}</p>
-                  <p className="mt-0.5 text-[14px] text-black/45 md:mt-0">{o.note}</p>
-                </div>
-                <p className="shrink-0 font-serif text-[22px] leading-6 tracking-[-0.01em] text-ink">
-                  {o.hours.replace(" h", "")}
-                  <span className="ml-1 font-sans text-[13px] text-black/40">h</span>
-                </p>
-              </div>
-            ))}
+            <p className="mt-2 text-[14px] text-black/45">Hours per month, months 1 to 3. Now a stable recurring order.</p>
+          </div>
+          <div>
+            <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-black/40">Orders</p>
+            <ul className="mt-3">
+              {orders.map((o) => (
+                <li key={o.name} className="flex items-baseline justify-between gap-6 border-b border-rule py-4">
+                  <span className="text-[17px] text-black/80">{o.name}</span>
+                  <span className="shrink-0 font-serif text-[20px] text-ink">
+                    {o.hours.replace(" h", "")}
+                    <span className="ml-1 font-sans text-[13px] text-black/40">h</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </Reveal>
+      </div>
+    </section>
+  );
+}
+
+function Inventory() {
+  return (
+    <section id="inventory" className="scroll-mt-24 bg-ivory pb-24 md:pb-32">
+      <div className="mx-auto max-w-[1120px] px-5 md:px-10">
+        <Reveal>
+          <SectionHead
+            badge="Inventory"
+            tint="lilac"
+            title="Data in stock, by device."
+            body="Every hour below is collected, validated and ready to deliver. Need another rig or scenario? We collect to spec."
+          />
+        </Reveal>
+        <div className="mt-16 space-y-14 md:mt-20">
+          {deviceGroups.map((g) => (
+            <Reveal key={g.id}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-black/70 pb-4">
+                <div className="flex flex-wrap items-baseline gap-x-3">
+                  <h3 className="font-serif text-[26px] font-normal tracking-[-0.01em] text-ink">{g.name}</h3>
+                  <span className="text-[14px] text-black/45">{g.about}</span>
+                </div>
+                <span className="font-serif text-[22px] text-ink">
+                  {fmt(groupHours(g))}
+                  <span className="ml-1 font-sans text-[13px] text-black/40">h</span>
+                </span>
+              </div>
+              <ul className="grid md:grid-cols-2 md:gap-x-12">
+                {g.devices.map((d) => (
+                  <li key={d.name} className="flex items-baseline justify-between gap-6 border-b border-rule py-4">
+                    <span className="min-w-0">
+                      <span className="block text-[16px] text-black/85">{d.name}</span>
+                      <span className="block text-[13px] text-black/45">{d.kind}</span>
+                    </span>
+                    <span className="shrink-0 text-[16px] tabular-nums text-black/70">
+                      {fmt(d.hours)}
+                      <span className="ml-1 text-[13px] text-black/40">h</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -346,6 +389,7 @@ export default function HomePage() {
         <Mission />
         <Traction />
         <Buyers />
+        <Inventory />
         <Supporters />
         <Spec />
         <DentalEntry />
