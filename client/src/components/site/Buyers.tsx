@@ -161,14 +161,15 @@ export function Buyers() {
             </div>
           </div>
 
-          {/* Globe: bleeds past the right and bottom edges, like a horizon */}
-          <div className="relative min-h-0 flex-1 lg:h-full">
-            <Globe
-              markets={markets}
-              position={position}
-              className="absolute inset-0 lg:-right-[20vw] lg:w-[calc(100%+20vw)]"
-            />
+          {/* Mobile: globe sits under the text */}
+          <div className="relative min-h-0 flex-1 lg:hidden">
+            <Globe markets={markets} position={position} className="absolute inset-0" />
           </div>
+        </div>
+        {/* Desktop: globe runs to the viewport's right edge, cropped like a
+            horizon. The canvas covers only what's on screen. */}
+        <div className="absolute inset-y-0 left-[38%] right-0 hidden lg:block">
+          <Globe markets={markets} position={position} className="absolute inset-0" />
         </div>
       </div>
     </section>

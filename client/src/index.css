@@ -331,3 +331,67 @@ html.lab-canvas canvas {
     opacity: 0.7;
   }
 }
+/* Buyers globe pins: positioned by Globe.tsx with transforms. The ripple is a
+   compositor-only animation, so it costs nothing while the globe is still. */
+.globe-pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease);
+}
+
+.globe-pin::before,
+.globe-pin::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%);
+}
+
+/* Other buyers: hollow ink ring */
+.globe-pin::before {
+  width: 8px;
+  height: 8px;
+  background: rgba(250, 249, 245, 0.9);
+  border: 1.25px solid #141413;
+  transition: all 0.25s var(--ease);
+}
+
+/* Active buyer: white dot with a ring rippling outward */
+.globe-pin[data-active="true"]::before {
+  width: 9px;
+  height: 9px;
+  background: #fff;
+  border-color: #fff;
+}
+
+.globe-pin[data-active="true"]::after {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid rgba(250, 249, 245, 0.85);
+  animation: globe-ripple 1.7s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+
+@keyframes globe-ripple {
+  from {
+    transform: translate(-50%, -50%) scale(0.33);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .globe-pin[data-active="true"]::after {
+    animation: none;
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+}
