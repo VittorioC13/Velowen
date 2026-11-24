@@ -140,31 +140,19 @@ function Glows({ children }: { children: React.ReactNode }) {
 
 const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
 
-// Per-group look: accent for the share bar, soft wash for the card
-const groupStyle: Record<string, { accent: string; wash: string }> = {
-  ego: {
-    accent: "#7cbffe",
-    wash: "radial-gradient(120% 90% at 0% 0%, rgba(172,205,236,.45), rgba(231,235,244,.35) 55%, rgba(255,255,255,.55))",
-  },
-  umi: {
-    accent: "#eeb780",
-    wash: "radial-gradient(120% 90% at 0% 0%, rgba(255,221,185,.6), rgba(255,240,225,.4) 55%, rgba(255,255,255,.55))",
-  },
-  robot: {
-    accent: "#46ccbd",
-    wash: "radial-gradient(120% 90% at 0% 0%, rgba(214,244,236,.7), rgba(231,244,240,.4) 55%, rgba(255,255,255,.55))",
-  },
+// One neutral card style for every group; groups differ only by ink tone
+// in the share bar (dark to light), so the section stays quiet.
+const groupTone: Record<string, string> = {
+  ego: "rgba(20, 20, 19, 0.85)",
+  umi: "rgba(20, 20, 19, 0.4)",
+  robot: "rgba(20, 20, 19, 0.16)",
 };
 
 function DeviceCard({ g, className = "" }: { g: DeviceGroup; className?: string }) {
-  const st = groupStyle[g.id];
   return (
-    <div
-      className={`rounded-[24px] border border-white/70 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.05)] md:p-7 ${className}`}
-      style={{ background: st.wash }}
-    >
+    <div className={`rounded-[24px] border border-black/[0.06] bg-white/50 p-6 md:p-7 ${className}`}>
       <div className="flex items-center gap-2 text-[14px] text-black/55">
-        <span className="h-2 w-2 rounded-full" style={{ background: st.accent }} />
+        <span className="h-1.5 w-1.5 rounded-full" style={{ background: groupTone[g.id] }} />
         {g.name}
       </div>
       <p className="mt-3 font-serif text-[40px] font-normal leading-none tracking-[-0.025em] text-ink">
@@ -194,15 +182,9 @@ function Traction() {
   const [ego, umi, robot] = deviceGroups;
   return (
     <section id="traction" className="relative scroll-mt-24 overflow-hidden bg-ivory pb-24 md:pb-32">
-      <Glows>
-        <div
-          className="absolute left-1/2 top-[18%] h-[760px] w-[1200px] -translate-x-1/2"
-          style={{ background: "radial-gradient(closest-side, rgba(172,205,236,.35), rgba(255,221,185,.18) 60%, transparent)" }}
-        />
-      </Glows>
       <div className="relative mx-auto max-w-[1120px] px-5 md:px-10">
         <Reveal className="flex flex-col items-center text-center">
-          <Badge tint="mint">In production</Badge>
+          <Badge>In production</Badge>
           <h2 className="mt-6 font-serif text-[56px] font-normal leading-none tracking-[-0.035em] text-ink md:text-[96px]">
             {fmt(Math.floor(totalHours / 1000) * 1000)}+
             <span className="ml-3 align-baseline font-sans text-[20px] tracking-normal text-black/40 md:text-[24px]">hours</span>
@@ -211,10 +193,10 @@ function Traction() {
             Validated, in stock and ready to ship, across {deviceCount} capture devices. World model and robotics teams
             are already buying.
           </p>
-          <span className="glass mt-7 inline-flex h-10 items-center gap-2.5 rounded-full px-4 text-[15px] text-black/70">
+          <span className="mt-7 inline-flex h-10 items-center gap-2.5 rounded-full border border-black/[0.08] px-4 text-[15px] text-black/60">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inset-0 animate-ping rounded-full bg-[#46ccbd] opacity-60" />
-              <span className="relative h-2 w-2 rounded-full bg-[#46ccbd]" />
+              <span className="absolute inset-0 animate-ping rounded-full bg-ink/30" />
+              <span className="relative h-2 w-2 rounded-full bg-ink/70" />
             </span>
             +{capacity.weeklyHours} new egocentric hours every week
           </span>
@@ -223,19 +205,19 @@ function Traction() {
         <div id="devices" className="scroll-mt-24">
           {/* Where the hours sit, at a glance */}
           <Reveal delay={0.1} className="mt-16 md:mt-20">
-            <div className="flex h-3 overflow-hidden rounded-full bg-black/[0.04]">
+            <div className="flex h-1.5 overflow-hidden rounded-full">
               {deviceGroups.map((g) => (
                 <div
                   key={g.id}
                   className="h-full first:rounded-l-full last:rounded-r-full [&:not(:first-child)]:ml-[3px]"
-                  style={{ width: `${(groupHours(g) / totalHours) * 100}%`, background: groupStyle[g.id].accent }}
+                  style={{ width: `${(groupHours(g) / totalHours) * 100}%`, background: groupTone[g.id] }}
                 />
               ))}
             </div>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px] text-black/50">
               {deviceGroups.map((g) => (
                 <span key={g.id} className="inline-flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: groupStyle[g.id].accent }} />
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: groupTone[g.id] }} />
                   {g.name} · {Math.round((groupHours(g) / totalHours) * 100)}%
                 </span>
               ))}
