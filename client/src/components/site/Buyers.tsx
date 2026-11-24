@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useRef, useState } from "react";
+import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { Globe } from "@/components/site/Globe";
 import { Badge } from "@/components/site/Badge";
 import { BookButton } from "@/components/site/Nav";
 import { markets, type Market } from "@/content/site";
 
-const HOLD_MS = 5200;
 const ease = [0.4, 0, 0.2, 1] as const;
 
 // Simplified flags, drawn at 3:2 so they share one box
@@ -64,94 +63,112 @@ function Flag({ code, className = "" }: { code: Market["flag"]; className?: stri
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
+const N = markets.length;
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+// Scroll progress (0..1) to globe position (0..N-1). The middle half of each
+// step does the turning; the rest holds on a country so it can be read.
+function toPosition(p: number) {
+  const r = clamp01(p) * (N - 1);
+  const i = Math.min(N - 1, Math.floor(r));
+  const t = clamp01((r - i - 0.25) / 0.5);
+  return i + t * t * (3 - 2 * t);
+}
+
+function RailBar({ progress, index }: { progress: MotionValue<number>; index: number }) {
+  // Each bar owns 1/N of the scroll and fills as you pass through it
+  const scaleX = useTransform(progress, (p) => clamp01(p * N - index));
+  return (
+    <span className="relative block h-[2px] overflow-hidden bg-black/[0.08]">
+      <motion.span className="absolute inset-0 origin-left bg-ink" style={{ scaleX }} />
+    </span>
+  );
+}
 
 export function Buyers() {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const position = useTransform(scrollYProgress, toPosition);
   const [active, setActive] = useState(0);
-  const [paused, setPaused] = useState(false);
+  useMotionValueEvent(position, "change", (v) => setActive(Math.round(v)));
   const m = markets[active];
 
-  // Auto-advance; the timer restarts whenever the country changes, so a
-  // click gives the chosen country a full turn on screen.
-  useEffect(() => {
-    if (paused) return;
-    const id = window.setTimeout(() => setActive((i) => (i + 1) % markets.length), HOLD_MS);
-    return () => window.clearTimeout(id);
-  }, [active, paused]);
+  // Rail click: scroll to where that country is centred
+  const jump = (i: number) => {
+    const el = ref.current;
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY;
+    const travel = el.offsetHeight - window.innerHeight;
+    window.scrollTo({ top: top + (travel * i) / (N - 1), behavior: "smooth" });
+  };
 
   return (
-    <section id="buyers" className="relative scroll-mt-24 overflow-hidden border-y border-rule bg-ivory">
-      <div className="relative mx-auto grid max-w-[1240px] lg:min-h-[760px] lg:grid-cols-[minmax(0,460px)_1fr]">
-        <div
-          className="relative z-10 flex flex-col px-5 pb-4 pt-16 md:px-10 lg:pb-16 lg:pt-24"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-        >
-          <div className="flex items-center gap-4">
-            <Badge tint="sky">Buyers</Badge>
-            <span className="font-mono text-[13px] tracking-[0.04em] text-black/55" aria-live="polite">
-              {pad(active + 1)} <span className="mx-1 text-black/30">/</span> {pad(markets.length)}
-            </span>
-          </div>
-
-          <div className="mt-10 lg:mt-auto">
-            <div className="min-h-[150px] md:min-h-[190px]">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={m.id}
-                initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -8, filter: "blur(8px)" }}
-                transition={{ duration: 0.55, ease }}
-              >
-                <h2 className="flex items-center gap-4 font-serif text-[56px] font-normal leading-none tracking-[-0.03em] text-ink md:text-[80px]">
-                  <Flag code={m.flag} className="h-[22px] w-[33px] shrink-0 shadow-[0_0_0_1px_rgba(20,20,19,0.08)] md:h-[26px] md:w-[39px]" />
-                  {m.name}
-                </h2>
-                <p className="mt-6 max-w-[380px] text-[21px] leading-[30px] text-black/50 md:text-[24px] md:leading-[34px]">
-                  {m.focus}
-                </p>
-              </motion.div>
-            </AnimatePresence>
+    // Tall track; the panel inside stays pinned while the globe turns.
+    // overflow-clip (not hidden) so the sticky child still sticks.
+    <section
+      id="buyers"
+      ref={ref}
+      className="relative scroll-mt-0 overflow-clip border-y border-rule bg-ivory"
+      style={{ height: `${N * 85 + 15}vh` }}
+    >
+      <div className="sticky top-0 h-[100svh] overflow-hidden">
+        <div className="relative mx-auto flex h-full max-w-[1240px] flex-col lg:grid lg:grid-cols-[minmax(0,460px)_1fr]">
+          <div className="relative z-10 flex flex-col px-5 pt-24 md:px-10 lg:pb-16 lg:pt-28">
+            <div className="flex items-center gap-4">
+              <Badge tint="sky">Buyers</Badge>
+              <span className="font-mono text-[13px] tracking-[0.04em] text-black/55" aria-live="polite">
+                {pad(active + 1)} <span className="mx-1 text-black/30">/</span> {pad(N)}
+              </span>
             </div>
-            <BookButton className="mt-6 h-11 px-6 text-[16px]">Buy data for your market</BookButton>
+
+            <div className="mt-8 lg:mt-auto">
+              <div className="min-h-[124px] md:min-h-[190px]">
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={m.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.35, ease }}
+                  >
+                    <h2 className="flex items-center gap-4 font-serif text-[48px] font-normal leading-none tracking-[-0.03em] text-ink md:text-[80px]">
+                      <Flag code={m.flag} className="h-[20px] w-[30px] shrink-0 shadow-[0_0_0_1px_rgba(20,20,19,0.08)] md:h-[26px] md:w-[39px]" />
+                      {m.name}
+                    </h2>
+                    <p className="mt-4 max-w-[380px] text-[19px] leading-[27px] text-black/50 md:mt-6 md:text-[24px] md:leading-[34px]">
+                      {m.focus}
+                    </p>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              <BookButton className="mt-5 h-11 px-6 text-[16px] md:mt-6">Buy data for your market</BookButton>
+            </div>
+
+            {/* Country rail: fills with the scroll, click to jump */}
+            <div className="mt-8 grid grid-cols-5 gap-2 lg:mt-auto" role="tablist" aria-label="Buyer countries">
+              {markets.map((c, i) => (
+                <button key={c.id} role="tab" aria-selected={i === active} onClick={() => jump(i)} className="group text-left">
+                  <RailBar progress={scrollYProgress} index={i} />
+                  <span
+                    className={`mt-2.5 block truncate text-[13px] transition-colors ${
+                      i === active ? "text-black/85" : "text-black/40 group-hover:text-black/70"
+                    }`}
+                  >
+                    {c.name}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Country rail: shows progress and lets you jump */}
-          <div className="mt-10 grid grid-cols-5 gap-2 lg:mt-auto" role="tablist" aria-label="Buyer countries">
-            {markets.map((c, i) => (
-              <button
-                key={c.id}
-                role="tab"
-                aria-selected={i === active}
-                onClick={() => setActive(i)}
-                className="group text-left"
-              >
-                <span className="relative block h-[2px] overflow-hidden bg-black/[0.08]">
-                  {i === active && (
-                    <motion.span
-                      key={`${c.id}-${paused}`}
-                      className="absolute inset-y-0 left-0 bg-ink"
-                      initial={{ width: paused ? "100%" : "0%" }}
-                      animate={{ width: "100%" }}
-                      transition={{ duration: paused ? 0 : HOLD_MS / 1000, ease: "linear" }}
-                    />
-                  )}
-                </span>
-                <span
-                  className={`mt-2.5 block truncate text-[13px] transition-colors ${
-                    i === active ? "text-black/85" : "text-black/40 group-hover:text-black/70"
-                  }`}
-                >
-                  {c.name}
-                </span>
-              </button>
-            ))}
+          {/* Globe: bleeds past the right and bottom edges, like a horizon */}
+          <div className="relative min-h-0 flex-1 lg:h-full">
+            <Globe
+              markets={markets}
+              position={position}
+              className="absolute inset-0 lg:-right-[20vw] lg:w-[calc(100%+20vw)]"
+            />
           </div>
-        </div>
-
-        {/* Globe: bleeds past the right and bottom edges, like a horizon */}
-        <div className="relative h-[420px] sm:h-[560px] lg:h-auto">
-          <Globe markets={markets} active={active} className="absolute inset-0 h-full w-full lg:-right-[20vw] lg:w-[calc(100%+20vw)]" />
         </div>
       </div>
     </section>
