@@ -12,17 +12,16 @@ import { Timeline } from "@/components/site/Timeline";
 import { Montage } from "@/components/montage/Montage";
 import { Buyers } from "@/components/site/Buyers";
 import {
-  anchorCustomer,
   backer,
   capacity,
   dental,
   deviceCount,
   deviceGroups,
   groupHours,
-  orders,
   site,
   spec10k,
   totalHours,
+  type DeviceGroup,
 } from "@/content/site";
 
 function useHashScroll() {
@@ -141,117 +140,116 @@ function Glows({ children }: { children: React.ReactNode }) {
 
 const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
 
-function Traction() {
-  const stats = [
-    { value: `${fmt(Math.floor(totalHours / 1000) * 1000)}+`, unit: "h", label: "Validated data in stock, ready to ship" },
-    { value: String(capacity.weeklyHours), unit: "h / week", label: "New egocentric data, every week" },
-    { value: String(deviceCount), unit: "devices", label: "From head-mounted cameras to humanoid robots" },
-  ];
-  const ramp = anchorCustomer.ramp;
+// Per-group look: accent for the share bar, soft wash for the card
+const groupStyle: Record<string, { accent: string; wash: string }> = {
+  ego: {
+    accent: "#7cbffe",
+    wash: "radial-gradient(120% 90% at 0% 0%, rgba(172,205,236,.45), rgba(231,235,244,.35) 55%, rgba(255,255,255,.55))",
+  },
+  umi: {
+    accent: "#eeb780",
+    wash: "radial-gradient(120% 90% at 0% 0%, rgba(255,221,185,.6), rgba(255,240,225,.4) 55%, rgba(255,255,255,.55))",
+  },
+  robot: {
+    accent: "#46ccbd",
+    wash: "radial-gradient(120% 90% at 0% 0%, rgba(214,244,236,.7), rgba(231,244,240,.4) 55%, rgba(255,255,255,.55))",
+  },
+};
+
+function DeviceCard({ g, className = "" }: { g: DeviceGroup; className?: string }) {
+  const st = groupStyle[g.id];
   return (
-    <section id="traction" className="relative scroll-mt-24 bg-ivory pb-24 md:pb-32">
-      <div className="mx-auto max-w-[1120px] px-5 md:px-10">
-        <Reveal>
-          <SectionHead
-            badge="Traction"
-            title="Already in production."
-            body="World model and robotics teams are buying Velowen hours today, and coming back for more."
-          />
-        </Reveal>
-
-        {/* Three numbers, nothing else */}
-        <Reveal className="mt-16 grid gap-10 md:mt-20 md:grid-cols-3 md:gap-8">
-          {stats.map((s) => (
-            <div key={s.label} className="border-t border-black/70 pt-6">
-              <p className="font-serif text-[52px] font-normal leading-none tracking-[-0.03em] text-ink md:text-[60px]">
-                {s.value}
-                <span className="ml-2 font-sans text-[16px] tracking-normal text-black/40">{s.unit}</span>
-              </p>
-              <p className="mt-4 text-[16px] leading-6 text-black/55">{s.label}</p>
-            </div>
-          ))}
-        </Reveal>
-
-        {/* Customers: one growth line, then the repeat orders */}
-        <Reveal className="mt-20 grid gap-12 md:mt-24 md:grid-cols-2 md:gap-16">
-          <div>
-            <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-black/40">Anchor customer</p>
-            <h3 className="mt-3 font-serif text-[28px] font-normal tracking-[-0.01em] text-ink">{anchorCustomer.name}</h3>
-            <p className="mt-1 text-[15px] text-black/45">{anchorCustomer.about}</p>
-            <div className="mt-8 flex flex-wrap items-baseline gap-x-3 gap-y-2">
-              {ramp.map((m, i) => (
-                <span key={m.month} className="inline-flex items-baseline gap-3">
-                  {i > 0 && <ArrowRight className="h-4 w-4 self-center text-black/30" strokeWidth={1.5} />}
-                  <span className="font-serif text-[26px] tracking-[-0.01em] text-ink">
-                    {m.label}
-                    <span className="ml-1 font-sans text-[13px] text-black/40">h</span>
-                  </span>
-                </span>
-              ))}
-            </div>
-            <p className="mt-2 text-[14px] text-black/45">Hours per month, months 1 to 3. Now a stable recurring order.</p>
-          </div>
-          <div>
-            <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-black/40">Orders</p>
-            <ul className="mt-3">
-              {orders.map((o) => (
-                <li key={o.name} className="flex items-baseline justify-between gap-6 border-b border-rule py-4">
-                  <span className="text-[17px] text-black/80">{o.name}</span>
-                  <span className="shrink-0 font-serif text-[20px] text-ink">
-                    {o.hours.replace(" h", "")}
-                    <span className="ml-1 font-sans text-[13px] text-black/40">h</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Reveal>
+    <div
+      className={`rounded-[24px] border border-white/70 p-6 shadow-[0_2px_20px_rgba(0,0,0,0.05)] md:p-7 ${className}`}
+      style={{ background: st.wash }}
+    >
+      <div className="flex items-center gap-2 text-[14px] text-black/55">
+        <span className="h-2 w-2 rounded-full" style={{ background: st.accent }} />
+        {g.name}
       </div>
-    </section>
+      <p className="mt-3 font-serif text-[40px] font-normal leading-none tracking-[-0.025em] text-ink">
+        {fmt(groupHours(g))}
+        <span className="ml-1.5 font-sans text-[15px] tracking-normal text-black/40">h</span>
+      </p>
+      <p className="mt-2 text-[14px] text-black/45">{g.about}</p>
+      <ul className="mt-6 border-t border-black/[0.08]">
+        {g.devices.map((d) => (
+          <li key={d.name} className="flex items-baseline justify-between gap-4 border-b border-black/[0.06] py-3 last:border-b-0">
+            <span className="min-w-0">
+              <span className="text-[15px] text-black/85">{d.name}</span>
+              <span className="ml-2 hidden text-[13px] text-black/40 sm:inline">{d.kind}</span>
+            </span>
+            <span className="shrink-0 text-[15px] tabular-nums text-black/65">
+              {fmt(d.hours)}
+              <span className="ml-0.5 text-[12px] text-black/35">h</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
-function Inventory() {
+function Traction() {
+  const [ego, umi, robot] = deviceGroups;
   return (
-    <section id="inventory" className="scroll-mt-24 bg-ivory pb-24 md:pb-32">
-      <div className="mx-auto max-w-[1120px] px-5 md:px-10">
-        <Reveal>
-          <SectionHead
-            badge="Inventory"
-            tint="lilac"
-            title="Data in stock, by device."
-            body="Every hour below is collected, validated and ready to deliver. Need another rig or scenario? We collect to spec."
-          />
+    <section id="traction" className="relative scroll-mt-24 overflow-hidden bg-ivory pb-24 md:pb-32">
+      <Glows>
+        <div
+          className="absolute left-1/2 top-[18%] h-[760px] w-[1200px] -translate-x-1/2"
+          style={{ background: "radial-gradient(closest-side, rgba(172,205,236,.35), rgba(255,221,185,.18) 60%, transparent)" }}
+        />
+      </Glows>
+      <div className="relative mx-auto max-w-[1120px] px-5 md:px-10">
+        <Reveal className="flex flex-col items-center text-center">
+          <Badge tint="mint">In production</Badge>
+          <h2 className="mt-6 font-serif text-[56px] font-normal leading-none tracking-[-0.035em] text-ink md:text-[96px]">
+            {fmt(Math.floor(totalHours / 1000) * 1000)}+
+            <span className="ml-3 align-baseline font-sans text-[20px] tracking-normal text-black/40 md:text-[24px]">hours</span>
+          </h2>
+          <p className="mt-5 max-w-[600px] text-[18px] leading-[27px] text-black/55 md:text-[21px] md:leading-[31px]">
+            Validated, in stock and ready to ship, across {deviceCount} capture devices. World model and robotics teams
+            are already buying.
+          </p>
+          <span className="glass mt-7 inline-flex h-10 items-center gap-2.5 rounded-full px-4 text-[15px] text-black/70">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inset-0 animate-ping rounded-full bg-[#46ccbd] opacity-60" />
+              <span className="relative h-2 w-2 rounded-full bg-[#46ccbd]" />
+            </span>
+            +{capacity.weeklyHours} new egocentric hours every week
+          </span>
         </Reveal>
-        <div className="mt-16 space-y-14 md:mt-20">
-          {deviceGroups.map((g) => (
-            <Reveal key={g.id}>
-              <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-black/70 pb-4">
-                <div className="flex flex-wrap items-baseline gap-x-3">
-                  <h3 className="font-serif text-[26px] font-normal tracking-[-0.01em] text-ink">{g.name}</h3>
-                  <span className="text-[14px] text-black/45">{g.about}</span>
-                </div>
-                <span className="font-serif text-[22px] text-ink">
-                  {fmt(groupHours(g))}
-                  <span className="ml-1 font-sans text-[13px] text-black/40">h</span>
+
+        <div id="devices" className="scroll-mt-24">
+          {/* Where the hours sit, at a glance */}
+          <Reveal delay={0.1} className="mt-16 md:mt-20">
+            <div className="flex h-3 overflow-hidden rounded-full bg-black/[0.04]">
+              {deviceGroups.map((g) => (
+                <div
+                  key={g.id}
+                  className="h-full first:rounded-l-full last:rounded-r-full [&:not(:first-child)]:ml-[3px]"
+                  style={{ width: `${(groupHours(g) / totalHours) * 100}%`, background: groupStyle[g.id].accent }}
+                />
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px] text-black/50">
+              {deviceGroups.map((g) => (
+                <span key={g.id} className="inline-flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: groupStyle[g.id].accent }} />
+                  {g.name} · {Math.round((groupHours(g) / totalHours) * 100)}%
                 </span>
-              </div>
-              <ul className="grid md:grid-cols-2 md:gap-x-12">
-                {g.devices.map((d) => (
-                  <li key={d.name} className="flex items-baseline justify-between gap-6 border-b border-rule py-4">
-                    <span className="min-w-0">
-                      <span className="block text-[16px] text-black/85">{d.name}</span>
-                      <span className="block text-[13px] text-black/45">{d.kind}</span>
-                    </span>
-                    <span className="shrink-0 text-[16px] tabular-nums text-black/70">
-                      {fmt(d.hours)}
-                      <span className="ml-1 text-[13px] text-black/40">h</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </Reveal>
-          ))}
+              ))}
+            </div>
+          </Reveal>
+
+          {/* Every device, named */}
+          <Reveal delay={0.15} className="mt-8 grid gap-4 lg:grid-cols-2 lg:gap-5">
+            <div className="flex flex-col gap-4 lg:gap-5">
+              <DeviceCard g={ego} />
+              <DeviceCard g={umi} />
+            </div>
+            <DeviceCard g={robot} />
+          </Reveal>
         </div>
       </div>
     </section>
@@ -389,7 +387,6 @@ export default function HomePage() {
         <Mission />
         <Traction />
         <Buyers />
-        <Inventory />
         <Supporters />
         <Spec />
         <DentalEntry />
